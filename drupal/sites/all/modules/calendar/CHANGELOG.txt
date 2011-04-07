@@ -1,0 +1,34 @@
+Calendar Module 7.x
+==================
+
+=================
+Version 7.x-1.x-dev
+=================
+
+- #1084366 by developer-x - Set the default value for date_first_day to 1
+- Some calendar settings were getting lost in export/clone.
+- #1043856 Needed to copy changes made to theme.inc to multiday/theme.inc.
+- #582940 by mcpuddin - Nonexistant "First day of week" causes weekday offset in the calendar.
+- Fix header layout.
+- Fix minor styling issues.
+- #998824 - For multiday layout, default to overlapping styles unless otherwise specified
+- #1032774 On multiday layout, the week display had a border missing in the all-day row
+
+=======================
+Version 7.x-1.0-alpha3
+=======================
+
+Argh! Fixing the field handling broke the handling for system dates. Try again.
+
+=======================
+Version 7.x-1.0-alpha2
+=======================
+
+Views made lots of changes to field handling just before the new release, which broke lots of things here. 
+Adding some work-arounds to get things working again and waiting until the dust settles on how the new core fields will be handled in Views before doing much more with the Views integration. These changes should get things working with latest Views release.
+
+=======================
+Version 7.x-1.0-alpha1
+=======================
+
+Initial release, probably still buggy.
