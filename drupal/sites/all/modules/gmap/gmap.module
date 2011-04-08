@@ -127,7 +127,33 @@ function gmap_gmap($op, &$map) {
         if (function_exists('_gmap_markermanager_override')) {
           _gmap_markermanager_override($mm);
         }
+        
+      }
 
+      // add required base js
+      drupal_add_js('http://maps.google.com/maps?file=api&v=2.115&key='.variable_get('googlemap_api_key').'&;hl=en');
+      drupal_add_js($path . 'gmap.js');
+      drupal_add_js($path . 'icon.js');
+      drupal_add_js($path . 'marker.js');
+      drupal_add_js($path . 'highlight.js');
+      drupal_add_js('/sites/default/files/js/gmap_markers.js');
+      drupal_add_js($path . 'gmap_marker.js');
+      drupal_add_js($path . 'poly.js');  
+    
+      
+      //$path = drupal_get_path('module', 'gmap') . '/js';
+      if (isset($map['behavior']['locpick']) && $map['behavior']['locpick']) {
+        drupal_add_js($path . 'locpick.js');
+      }
+      if (!empty($map['markers']) || !empty($map['lines'])) {
+        drupal_add_js($path . 'markerloader_static.js');
+      }
+      if (!empty($map['shapes'])) {
+        drupal_add_js($path . 'shapeloader_static.js');
+        drupal_add_js($path . 'gmap_shapes.js');
+      }
+      if (isset($map['feed']) && is_array($map['feed'])) {
+        drupal_add_js(path . 'markerloader_georss.js');
       }
       break;
     case 'macro_multiple':
