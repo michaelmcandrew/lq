@@ -58,7 +58,9 @@ function _date_views_fields($base = 'node') {
 
     // For Field module fields, get the date type.
     $custom = array();
-    if ($handler->definition['group'] == 'Fields') {
+// http://drupal.org/node/1103790#comment-4306414
+//    if ($handler->definition['group'] == 'Fields') {
+    if (isset($handler->definition['field_name'])) {
       $field = field_info_field($handler->definition['field_name']);
       switch ($field['type']) {
        case 'date':

@@ -1,3 +1,7 @@
+/*  added by ML */
+/*  remove links to day, month, year calendars */
+.calendar-calendar ul.inline {display:none;}
+
 /*  calendar calendar table styles  */
 .calendar-calendar tr.odd, .calendar-calendar tr.even {
   background-color:#fff;
