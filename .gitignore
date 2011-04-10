@@ -3,6 +3,7 @@ drupal/sites/*/civicrm.settings.php
 drupal/sites/*/files
 
 drupal/sites/all/modules/devel
+drupal/sites/all/modules/devel_themer
 
 drupal/google*.html
 
