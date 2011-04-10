@@ -2,6 +2,8 @@ drupal/sites/*/settings.php
 drupal/sites/*/civicrm.settings.php
 drupal/sites/*/files
 
+drupal/sites/all/modules/devel
+
 drupal/google*.html
 
 *~
