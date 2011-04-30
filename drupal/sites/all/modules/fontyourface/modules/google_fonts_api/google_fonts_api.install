@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * @file
+ * Removes fonts on disable.
+ */
+
+/**
+ * Implements hook_enable().
+ */
+function google_fonts_api_enable() {
+
+  // Weight must be above @font-your-face weight so preprocess comes after
+
+  db_query("UPDATE {system} SET weight = 1 WHERE name = 'google_fonts_api'");
+
+} // google_fonts_api_enable
+
+
+/**
+ * Implements hook_disable().
+ */
+function google_fonts_api_disable() {
+
+  fontyourface_provider_disable('google_fonts_api');
+
+} // google_fonts_api_disable
