@@ -116,10 +116,10 @@
 
   <div class="yui-gf">
     <span class="yui-u first" id="masthead-image">
-      <img src="http://www.londonquakers.org.uk/images/29.jpg" width="212" height="216" alt="Daisy facing sun" >
+      <img src="/sites/default/files/29.jpg" width="212" height="216" alt="Daisy facing sun" >
     </span>
     <span class="yui-u last" id="masthead-quote" style="margin-left:10px;">
-        <img src="http://www.londonquakers.org.uk/images/57.gif" width="500" height="216" alt="&quot;Quakerism is a way of life rather than a set of beliefs. Quakers seek to experience God directly, within themselves and in their relationships with others and the world around them. These direct encounters with the Divine are where Quakers find meaning and purpose.&quot;" >
+        <img src="/sites/default/files/57.gif" width="500" height="216" alt="&quot;Quakerism is a way of life rather than a set of beliefs. Quakers seek to experience God directly, within themselves and in their relationships with others and the world around them. These direct encounters with the Divine are where Quakers find meaning and purpose.&quot;" >
     </div>
   </div>
 
