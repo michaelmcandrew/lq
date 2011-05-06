@@ -21,6 +21,7 @@
 }
 
 h2.block-title /* Block title */ {
+  font-size: 1.2em;
 }
 
 .block .content /* Block's content wrapper */ {
