@@ -80,6 +80,58 @@ h2.block-title /* Block title */ {
 #block-system-main-menu /* "Main menu" block */ {
 }
 
+#block-system-main-menu ul.menu {
+  margin:0;
+  padding:0;
+}
+
+/* LQ */
+/* http://www.alistapart.com/articles/customunderlines/ */
+#block-system-main-menu ul.menu li.leaf {
+  background-image: url("/sites/default/files/nav-images/line-berry.gif");
+  background-repeat: repeat-x;
+  background-position: 100% 100%;
+  list-style-image:none;
+  list-style-type:none;
+  font-size:1em;
+  line-height:2.2em;
+}
+
+#block-system-main-menu ul.menu li.leaf a {
+  text-decoration: none;
+}
+
+
+/* LQ 
+#block-system-main-menu li.leaf {
+  text-decoration: line-through;
+  background: url("/sites/default/files/nav-images/line-berry.gif") repeat-y scroll left bottom transparent;
+}
+
+#block-system-main-menu li.leaf a {
+  z-index: 1008;
+  background-color: #FFFFFF;
+  background-image: none;
+  border-color: #EAD4A4 #EDBB85 #EDBB85 #EAD4A4;
+  border-style: solid;
+  border-width: 0;
+  color: #5C8BC3;
+  cursor: pointer !important;
+  font-family: arial,sans-serif;
+  font-style: normal;
+  font-weight: normal !important;
+  padding-bottom: 0 !important;
+  padding-left: 0;
+  padding-right: 0;
+  padding-top: 0 !important;
+  text-align: left;
+  text-decoration: none;
+  height: 30px;
+  position: relative !important;
+  width: 193px;
+}
+*/
+
 #block-system-management /* "Management" block for Drupal management menu */ {
 }
 

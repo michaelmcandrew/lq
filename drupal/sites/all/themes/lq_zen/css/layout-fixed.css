@@ -31,11 +31,14 @@ body {
    */
   margin-left: auto;
   margin-right: auto;
-  width: 766px; /* 960px; */
+  width: 815px; /* 960px; */
 }
 
 #page {
-  padding: 20px;
+  padding-top: 0;
+  padding-bottom: 20px;
+  padding-right: 32px;
+  padding-left: 32px;
 }
 
 /*
@@ -55,8 +58,11 @@ body {
  */
 #main-wrapper {
   position: relative;
-  width: 726px;
-  margin-left: 20px;
+  width: 751px;
+  margin-top: 0;
+  margin-bottom: 0;
+  margin-right: 32px;
+  margin-left: 32px;
 }
 
 #main {
@@ -68,28 +74,28 @@ body {
 #content,
 .no-sidebars #content {
   float: left; /* LTR */
-  width: 726px;
-  margin-left: 20; /* LTR */
-  margin-right: -746px; /* LTR */ /* Negative value of #content's width + left margin. */
+  width: 751px;
+  margin-left: 0px; /* LTR */
+  margin-right: -751px; /* LTR */ /* Negative value of #content's width + left margin. */
   padding: 0; /* DO NOT CHANGE. Add padding or margin to #content .section. */
 }
 
 .sidebar-first #content {
-  width: 614px;
+  width: 583px;
   margin-left: 200px; /* LTR */ /* The width of .region-sidebar-first. */
-  margin-right: -814px; /* LTR */ /* Negative value of #content's width + left margin. */
+  margin-right: -783px; /* LTR */ /* Negative value of #content's width + left margin. */
 }
 
 .sidebar-second #content {
-  width: 614px;
+  width: 583px;
   margin-left: 0; /* LTR */
-  margin-right: -614px; /* LTR */ /* Negative value of #content's width + left margin. */
+  margin-right: -583px; /* LTR */ /* Negative value of #content's width + left margin. */
 }
 
 .two-sidebars #content {
-  width: 520px;
+  width: 383px;
   margin-left: 200px; /* LTR */ /* The width of .region-sidebar-first */
-  margin-right: -720px; /* LTR */ /* Negative value of #content's width + left margin. */
+  margin-right: -583px; /* LTR */ /* Negative value of #content's width + left margin. */
 }
 
 #content .section {

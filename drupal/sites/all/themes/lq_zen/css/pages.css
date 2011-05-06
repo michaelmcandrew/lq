@@ -61,8 +61,8 @@ body {
 
 h1#site-name,
 div#site-name /* The name of the website */ {
-  margin: 0;
-  font-size: 3em; /* 2em; */
+  margin-top: 0.5em;
+  font-size: 2.5em; /* 2em; */
   line-height: 1.5em;
   color: #5C8BC3; 
 }
@@ -117,6 +117,11 @@ h2.title, /* Comment section heading */
 h2.comment-form, /* Comment form heading */
 h3.title /* Comment title */ {
   margin: 0;
+}
+
+/* LQ */
+h1.title {
+  font-size: 1.2em;
 }
 
 tr.even /* Some tables have rows marked even or odd. */ {
