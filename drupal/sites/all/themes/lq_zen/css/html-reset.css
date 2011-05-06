@@ -139,7 +139,7 @@ hr, table, fieldset {
 
 /* Headings */
 h1 {
-  font-size: 2em;
+  font-size: 1.2em;
   line-height: 1.5em;
   margin: 0.75em 0;
   /* 0.75em is equivalent to 1.5em in the page's base font. font. Remember, a
