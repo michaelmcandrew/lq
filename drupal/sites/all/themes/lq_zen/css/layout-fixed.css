@@ -81,15 +81,15 @@ body {
 }
 
 .sidebar-first #content {
-  width: 583px;
+  width: 546px;
   margin-left: 200px; /* LTR */ /* The width of .region-sidebar-first. */
-  margin-right: -783px; /* LTR */ /* Negative value of #content's width + left margin. */
+  margin-right: -746px; /* LTR */ /* Negative value of #content's width + left margin. */
 }
 
 .sidebar-second #content {
-  width: 583px;
+  width: 546px;
   margin-left: 0; /* LTR */
-  margin-right: -583px; /* LTR */ /* Negative value of #content's width + left margin. */
+  margin-right: -546px; /* LTR */ /* Negative value of #content's width + left margin. */
 }
 
 .two-sidebars #content {
