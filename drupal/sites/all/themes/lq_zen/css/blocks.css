@@ -102,6 +102,20 @@ h2.block-title /* Block title */ {
   text-decoration: none;
 }
 
+.contextual-links-region .content p {
+  background-image: url("/sites/default/files/nav-images/line-berry.gif");
+  background-repeat: repeat-x;
+  background-position: 100% 100%;
+  list-style-image:none;
+  list-style-type:none;
+  font-size:1em;
+  line-height:2.2em;
+  margin-top:0;
+}
+
+.contextual-links-region .content p a {
+  text-decoration: none;
+}
 
 /* LQ 
 #block-system-main-menu li.leaf {
