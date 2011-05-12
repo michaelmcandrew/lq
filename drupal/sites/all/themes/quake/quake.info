@@ -1,0 +1,9 @@
+; $Id: stark.info,v 1.4 2010/11/07 00:27:20 dries Exp $
+name = Quake
+description = A drupal 7 theme for London Quakers
+package = Core
+version = VERSION
+core = 7.x
+stylesheets[all][] = reset.css
+stylesheets[all][] = style.css
+

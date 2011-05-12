@@ -1,0 +1,139 @@
+.clear {
+	clear: both;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover
+{
+	text-decoration: none;
+}
+
+body
+{
+	font-family: Arial, Helvetica, Georgia, Sans-serif;
+	font-size: 0.8em;
+	text-align: center;
+	color: #000;
+	background-color: #d2dfef;
+}
+
+p {
+	margin: 8px 0;
+}
+
+#wrapper {
+	width: 900px;
+	margin: 0 auto;
+	padding: 0 30px;
+	text-align: left;
+	background-color: #fff;
+}
+
+#header {
+	height: 130px;
+	margin-bottom: 18px;
+}
+
+#header h1, #leftCol ul a, h2 {
+	font-family: 'Rokkitt', Georgia, Serif;
+}
+
+#header h1 a {
+/*	width: ;
+	height: ;
+	display: block;
+	text-indent: -9999px;
+	font-size: 0;
+	line-height: 0;
+*/
+}
+
+#banner {
+	height: 260px;
+	margin-bottom: 18px;
+}
+
+#bannerQuote {
+	width: 260px;
+	height: 260px;
+	margin-right: 18px;
+	float: left;
+}
+
+#bannerImage {
+	width: 622px;
+	height: 260px;
+	float: right;
+}
+
+#leftCol {
+	width: 259px;
+	float: left;
+}
+
+#leftCol ul li {
+	background: url(images/pink-dash.gif) no-repeat 0 bottom;
+}
+
+#leftCol ul li.last {
+	background: 0 none;
+}
+
+#leftCol ul a {
+	margin: 4px 0 6px 0;
+	padding: 3px 0;
+	display: inline-block;
+	color: #6e9ece;
+	font-size: 1.4em;
+}
+
+#leftCol ul a:hover { 
+	background-color: #d2dfef;
+}
+	
+#main {
+	width: 622px;
+	float: left;
+	padding-left: 18px;
+	border-left: 1px solid #6e9ece;
+}
+
+#pageIntro {
+	float: left;
+}
+
+#hpRight {
+	width: 384px;
+	margin-left: 18px;
+	padding-left: 18px;
+	float: right;
+	border-left: 1px solid #6e9ece;
+}
+
+h2 {
+	padding: 4px 0;
+	color: #6e9ece;
+	font-size: 1.8em;
+}
+
+h4 {
+	padding: 2px 0;
+}
+
+#footer {
+	height: 30px;
+	line-height: 30px;
+	clear: both;
+}
+
+
+
+
+
+
+
+
+
