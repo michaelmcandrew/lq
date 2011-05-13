@@ -41,14 +41,19 @@ p {
 	font-family: 'Rokkitt', Georgia, Serif;
 }
 
+#header h1 {
+	float: left;
+	margin-top: 60px;
+}
+
 #header h1 a {
-/*	width: ;
-	height: ;
+	width: 336px;
+	height: 43px;
 	display: block;
 	text-indent: -9999px;
 	font-size: 0;
 	line-height: 0;
-*/
+	background: url(images/logo.png) no-repeat 0 0;
 }
 
 #banner {
@@ -105,8 +110,12 @@ p {
 	float: left;
 }
 
+.front #pageIntro {
+	width: 292px;
+}
+
 #hpRight {
-	width: 384px;
+	width: 292px;
 	margin-left: 18px;
 	padding-left: 18px;
 	float: right;

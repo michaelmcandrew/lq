@@ -70,16 +70,12 @@
 
 <div id="wrapper">
 	<div id="header">
-		<?php if ($logo): ?>
-			<a href="<?php print $front_page; ?>" title="<?php print t('Home'); ?>" rel="home" id="logo">
-				<img src="<?php print $logo; ?>" alt="<?php print t('Home'); ?>" />
-			</a>
-		<?php endif; ?>
-
 		<?php if ($site_name || $site_slogan): ?>
 			<?php if ($site_name): ?>
 				<?php if ($title): ?>
-					<a href="<?php print $front_page; ?>" title="<?php print t('Home'); ?>" rel="home"><?php print $site_name; ?></a>
+					<h1>
+						<a href="<?php print $front_page; ?>" title="<?php print t('Home'); ?>" rel="home"><?php print $site_name; ?></a>
+					</h1>
 				<?php endif; ?>
 			<?php endif; ?>
 
@@ -97,11 +93,10 @@
 			<img src="/sites/all/themes/quake/images/banner-image-1.png" alt="image" />
 		</div>
 	</div>
-
+	
 	<?php print $messages; ?>
 		
 	<div id="leftCol">
-		<!-- <?php print render($page['sidebar_first']); ?> -->
 		<?php if ($main_menu || $secondary_menu): ?>
 			<?php print theme('links__system_main_menu', array('links' => $main_menu, 'attributes' => array('id' => 'main-menu'))); ?>
 		<?php endif; ?>
@@ -114,11 +109,13 @@
       		<?php endif; ?>
 		</div>
 		<div id="pageIntro">
-        	<!-- <?php if ($page['highlighted']): ?><?php print render($page['highlighted']); ?><?php endif; ?> -->
-	        <?php if ($title): ?><h2 class="title" id="page-title"><?php print $title; ?></h2><?php endif; ?>
+	        <?php if ($title): ?>
+				<h2 class="title" id="page-title">
+					<?php print $title; ?>
+				</h2>
+			<?php endif; ?>
 	        <?php if ($tabs): ?><?php print render($tabs); ?><?php endif; ?>
-	        <!-- <?php print render($page['help']); ?> -->
-	        <!-- <?php if ($action_links): ?><ul><?php print render($action_links); ?></ul><?php endif; ?> -->
+	 
 			
 			<?php print render($page['content']); ?>
 	      </div>        		
