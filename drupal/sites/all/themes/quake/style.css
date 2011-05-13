@@ -122,9 +122,12 @@ p {
 	border-left: 1px solid #6e9ece;
 }
 
+h2, h2 a {
+	color: #6e9ece;
+}
+
 h2 {
 	padding: 4px 0;
-	color: #6e9ece;
 	font-size: 1.8em;
 }
 
