@@ -11,19 +11,33 @@ a:hover
 	text-decoration: none;
 }
 
-body
-{
-	font-family: Arial, Helvetica, Georgia, Sans-serif;
-	font-size: 0.8em;
-	text-align: center;
-	color: #000;
-	background-color: #d2dfef;
+h2, h2 a {
+	color: #6e9ece;
+}
+
+h2 {
+	padding: 4px 0;
+	font-size: 1.8em;
+}
+
+h4 {
+	padding: 2px 0;
 }
 
 p {
 	margin: 8px 0;
 }
 
+body
+{
+	font-family: Arial, Helvetica, Georgia, Sans-serif;
+	font-size: 0.8em;
+	text-align: center;
+	color: #2e2e2e;
+	background-color: #d2dfef;
+}
+
+/*...........structure............*/
 #wrapper {
 	width: 900px;
 	margin: 0 auto;
@@ -122,26 +136,28 @@ p {
 	border-left: 1px solid #6e9ece;
 }
 
-h2, h2 a {
-	color: #6e9ece;
-}
-
-h2 {
-	padding: 4px 0;
-	font-size: 1.8em;
-}
-
-h4 {
-	padding: 2px 0;
-}
-
 #footer {
 	height: 30px;
 	line-height: 30px;
 	clear: both;
 }
 
+/*...........events............*/
+.view-events .views-row {
+	margin-bottom: 15px;
+}
 
+.node-event h3 a {
+	color: #2e2e2e;
+}
+
+ul.inline li {
+	padding: 0 5px 0 0;
+}
+
+ul.inline li a {
+	color: #6E9ECE;	
+}
 
 
 

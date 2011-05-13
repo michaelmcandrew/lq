@@ -67,7 +67,9 @@
  * @see template_process()
  */
 ?>
-
+<head>
+	<script type="text/javascript" src="http://fast.fonts.com/jsapi/b063277d-b031-4c3d-8511-7ce99919e935.js"></script>
+</head>
 <div id="wrapper">
 	<div id="header">
 		<?php if ($site_name || $site_slogan): ?>
