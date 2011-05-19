@@ -6,7 +6,7 @@ function contact_event_organiser_nodeapi(&$node, $op, $teaser, $page) {
 	
 	//create a form
 	
-	$node->content['contact_event_organiser_form']=drupal_get_form('contact_event_organiser_form')
+	$node->content['contact_event_organiser_form']=drupal_get_form('contact_event_organiser_form');
 	
 	//if the user is logged in, pre-populate with his email address
 }
