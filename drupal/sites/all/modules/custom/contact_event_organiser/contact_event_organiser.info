@@ -1,0 +1,4 @@
+name = Contact Event Organiser
+description = A module allowing members of the public to contact event organisers.
+package = London Quakers custom modules
+core = 7.x

@@ -1,0 +1,21 @@
+<?php
+function contact_event_organiser_nodeapi(&$node, $op, $teaser, $page) {
+	global $user;
+	
+	//if this is an event content type
+	
+	//create a form
+	
+	$node->content['contact_event_organiser_form']=drupal_get_form('contact_event_organiser_form')
+	
+	//if the user is logged in, pre-populate with his email address
+}
+
+function contact_event_organiser_form($form_state){
+	//return the form
+}
+
+function contact_event_organiser_form_submit($form, $form_state){
+	//send an email
+	//log the email
+}
