@@ -82,10 +82,15 @@ body
 }
 
 #bannerQuote {
-	width: 260px;
-	height: 260px;
+	width: 244px;
+	height: 230px;
 	margin-right: 18px;
+	padding: 15px 8px;
 	float: left;
+}
+
+#bannerQuote p {
+	font-size: 1.4em;;
 }
 
 #bannerImage {
