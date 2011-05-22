@@ -88,11 +88,10 @@
     </div>
 	<div id="banner">
 		<div id="bannerQuote">
-			<img src="/sites/all/themes/quake/images/quote-1.png" alt="quote" />
+			<?php print render($page['banner_left']); ?>
 		</div>
-		
 		<div id="bannerImage">
-			<img src="/sites/all/themes/quake/images/banner-image-1.png" alt="image" />
+			<?php print render($page['banner_right']); ?>
 		</div>
 	</div>
 	
@@ -105,7 +104,7 @@
 	</div>
 
     <div id="main">
-    <?php if ($page['sidebar_second']): ?>
+    <?php if (isset($page['sidebar_second'])): ?>
       <div id="hpRight">
         <?php print render($page['sidebar_second']); ?>
       </div>
@@ -118,7 +117,7 @@
     <?php endif; ?>
     <?php if ($tabs): ?><?php print render($tabs); ?><?php endif; ?>
     <?php print render($page['content']); ?>
-    <?php if ($page['sidebar_second']): ?>
+    <?php if (isset($page['sidebar_second'])): ?>
       </div>        		
     <?php endif; ?>
     </div>

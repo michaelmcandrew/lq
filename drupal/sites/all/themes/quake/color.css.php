@@ -1,23 +1,27 @@
 <?php
 $nodetype=array(
-	'page'=>'#6E9ECE',
-	'meeting'=>'green',
+	'home'=>'pink',
+	'page'=>'fern',
 	'news'=>'blue',
-	'event'=>'red',
+	'event'=>'orange',
 );
+
 
 if(!array_key_exists($_REQUEST['node'], $nodetype)){
 	exit;
 } else {
 	echo "
 	
-h2 {
+h4 {
 	color: {$nodetype[$_REQUEST['node']]};
+}
+
+#leftCol ul li {
+	background-image: {$nodetype[$_REQUEST['node']]};
 }
 
 ";
 }
 
 ?>
-
 

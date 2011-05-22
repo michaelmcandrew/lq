@@ -17,7 +17,8 @@ h2, h2 a {
 
 h2 {
 	padding: 4px 0;
-	font-size: 1.8em;
+	font-size: 1.6em;
+	font-weight: normal;
 }
 
 h4 {
@@ -26,6 +27,7 @@ h4 {
 
 p {
 	margin: 8px 0;
+	line-height: 1.3em;
 }
 
 body
@@ -75,6 +77,10 @@ body
 	margin-bottom: 18px;
 }
 
+#banner p {
+	margin: 0;
+}
+
 #bannerQuote {
 	width: 260px;
 	height: 260px;
@@ -94,7 +100,9 @@ body
 }
 
 #leftCol ul li {
-	background: url(images/pink-dash.gif) no-repeat 0 bottom;
+	background-position: 0 bottom;
+	background-repeat: no-repeat;
+	background-image: url(images/fern-dash.gif);
 }
 
 #leftCol ul li.last {

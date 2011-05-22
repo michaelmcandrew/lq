@@ -7,3 +7,12 @@ core = 7.x
 stylesheets[all][] = reset.css
 stylesheets[all][] = style.css
 
+regions[sidebar_first] = Left sidebar
+regions[sidebar_second] = Right sidebar
+regions[content] = Content
+regions[header] = Header
+regions[footer] = Footer
+regions[highlighted] = Highlighted
+regions[help] = Help
+regions[banner_left] = Banner left
+regions[banner_right] = Banner right
