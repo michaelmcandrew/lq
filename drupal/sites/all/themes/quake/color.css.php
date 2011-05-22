@@ -11,18 +11,17 @@ if(!array_key_exists($_REQUEST['node'], $nodetype)){
 	exit;
 } else {
 	echo "
-	
-h4 {
+	h4 {
 	color: {$nodetype[$_REQUEST['node']]};
-}
+	}
+	
+	#bannerQuote { 
+		background-color: {$nodetype[$_REQUEST['node']]};
+	}
 
-#leftCol ul li {
+	#leftCol ul li {
 	background-image: {$nodetype[$_REQUEST['node']]};
-}
-
-#bannerQuote { 
-	background-color: {$nodetype[$_REQUEST['node']]}}
-
+	}
 ";
 }
 
