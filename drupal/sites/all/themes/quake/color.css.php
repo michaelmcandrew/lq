@@ -1,9 +1,9 @@
 <?php
 $nodetype=array(
 	'home'=>'#a4ac73',
-	'page'=>'pink',
-	'news'=>'blue',
-	'event'=>'orange',
+	'page'=>'#eac5d3',
+	'news'=>'#e0e3e7',
+	'event'=>'#f2cfae',
 );
 
 
