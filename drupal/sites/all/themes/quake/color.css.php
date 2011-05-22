@@ -1,7 +1,7 @@
 <?php
 $nodetype=array(
-	'home'=>'pink',
-	'page'=>'fern',
+	'home'=>'#a4ac73',
+	'page'=>'pink',
 	'news'=>'blue',
 	'event'=>'orange',
 );
@@ -19,6 +19,9 @@ h4 {
 #leftCol ul li {
 	background-image: {$nodetype[$_REQUEST['node']]};
 }
+
+#bannerQuote { 
+	background-color: {$nodetype[$_REQUEST['node']]}}
 
 ";
 }

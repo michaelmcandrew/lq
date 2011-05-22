@@ -81,12 +81,15 @@ body
 	margin: 0;
 }
 
-#bannerQuote {
-	width: 244px;
-	height: 230px;
+#bannerQuote {	
+	width: 232px;
+	height: 224px;
 	margin-right: 18px;
-	padding: 15px 8px;
+	padding: 18px 14px;
 	float: left;
+	font-family: 'Glypha LT W01 55 Roman';
+	color: #fff;
+	background-color: #a4ac73;
 }
 
 #bannerQuote p {
