@@ -20,7 +20,7 @@ if(!array_key_exists($_REQUEST['node'], $nodetype)){
 	}
 
 	#leftCol ul li {
-	background-image: {$nodetype[$_REQUEST['node']]};
+	background-image: dash-{$nodetype[$_REQUEST['node']]}.png;
 	}
 ";
 }

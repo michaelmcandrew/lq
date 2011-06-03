@@ -4,11 +4,12 @@
 
 a {
 	text-decoration: none;
+	color: #6E9ECE;
 }
 
 a:hover
 {
-	text-decoration: none;
+	text-decoration: underline;
 }
 
 h2, h2 a {
@@ -89,7 +90,7 @@ body
 	float: left;
 	font-family: 'Glypha LT W01 55 Roman';
 	color: #fff;
-	background-color: #a4ac73;
+	/*background-color: #a4ac73;*/
 }
 
 #bannerQuote p {
@@ -110,7 +111,6 @@ body
 #leftCol ul li {
 	background-position: 0 bottom;
 	background-repeat: no-repeat;
-	background-image: url(images/fern-dash.gif);
 }
 
 #leftCol ul li.last {
@@ -127,6 +127,7 @@ body
 
 #leftCol ul a:hover { 
 	background-color: #d2dfef;
+	text-decoration: none;
 }
 	
 #main {
@@ -174,6 +175,30 @@ ul.inline li {
 ul.inline li a {
 	color: #6E9ECE;	
 }
+
+.node-event h2, .node-article h2 {
+	font-family: Arial, Helvetica, Sans-serif;
+	font-size: 13px;
+	font-weight: bold;
+	margin: 0;
+	padding: 2px 0;
+	padding-left: 16px;
+	background: url(images/event-bullet.png) no-repeat 0 center;
+}
+
+.node-event h2 a, .node-article h2 a {
+	color: #2E2E2E;
+}
+
+/*.........news...........*/
+.node-article h2 {
+	background: url(images/news-bullet.png) no-repeat 0 center;
+}
+
+.item-list .news-tease li {
+	margin: 0 0 20px 0;
+}
+
 
 
 

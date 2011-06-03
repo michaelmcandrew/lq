@@ -91,7 +91,7 @@
 			<?php if(count($page['banner_left'])): ?>
 				<?php print render($page['banner_left']); ?>
 			<?php else: ?>
-				This is where you put stuff when there is no banner_left (obviously, will need to be wrapped in similar html to what Drupal would do).
+				<p>This is the default text for when there is no banner quote specified</p>
 			<?php endif; ?>
 			
 		</div>
@@ -99,7 +99,7 @@
 			<?php if(count($page['banner_right'])): ?>
 				<?php print render($page['banner_right']); ?>
 			<?php else: ?>
-				This is where you put stuff when there is no banner_right (obviously, will need to be wrapped in similar html to what Drupal would do).
+				<img style="width: 622px; height: 260px;" src="/sites/all/themes/quake/images/banner-image-default.png" alt="">
 			<?php endif; ?>
 		</div>
 	</div>
