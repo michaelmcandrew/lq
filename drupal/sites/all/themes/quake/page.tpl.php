@@ -88,10 +88,19 @@
     </div>
 	<div id="banner">
 		<div id="bannerQuote">
-			<?php print render($page['banner_left']); ?>
+			<?php if(count($page['banner_left'])): ?>
+				<?php print render($page['banner_left']); ?>
+			<?php else: ?>
+				This is where you put stuff when there is no banner_left (obviously, will need to be wrapped in similar html to what Drupal would do).
+			<?php endif; ?>
+			
 		</div>
 		<div id="bannerImage">
-			<?php print render($page['banner_right']); ?>
+			<?php if(count($page['banner_right'])): ?>
+				<?php print render($page['banner_right']); ?>
+			<?php else: ?>
+				This is where you put stuff when there is no banner_right (obviously, will need to be wrapped in similar html to what Drupal would do).
+			<?php endif; ?>
 		</div>
 	</div>
 	
