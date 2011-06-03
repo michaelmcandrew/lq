@@ -72,17 +72,15 @@
 </head>
 <div id="wrapper">
 	<div id="header">
-		<?php if ($site_name || $site_slogan): ?>
-			<?php if ($site_name): ?>
-				<?php if ($title): ?>
-					<h1>
-						<a href="<?php print $front_page; ?>" title="<?php print t('Home'); ?>" rel="home"><?php print $site_name; ?></a>
-					</h1>
-				<?php endif; ?>
+		<?php if ($site_name): ?>
+			<?php if ($title): ?>
+				<h1>
+					<a href="<?php print $front_page; ?>" title="<?php print t('Home'); ?>" rel="home"><?php print $site_name; ?></a>
+				</h1>
 			<?php endif; ?>
-
-			<?php if ($site_slogan): ?><?php print $site_slogan; ?><?php endif; ?>
 		<?php endif; ?>
+		
+		<div id="logoBox"></div>
 
 		<?php print render($page['header']); ?>
     </div>

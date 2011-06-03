@@ -1,9 +1,15 @@
+/* pink */
+
+#logoBox {
+	background-image: url(images/pink-logo.gif);
+}
+
 h4 {
-	color: #eac5d3;
+	color: #BF507A;
 }
 
 #bannerQuote { 
-	background-color: #eac5d3;
+	background-color: #BF507A;
 }
 
 #leftCol ul li {
