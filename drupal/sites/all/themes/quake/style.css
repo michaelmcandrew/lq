@@ -58,9 +58,9 @@ body
 	margin-bottom: 18px;
 }
 
-#header h1, #leftCol ul a, h2 {
+/*#header h1, #leftCol ul a, h2 {
 	font-family: 'Glypha LT W01 55 Roman';
-}
+}*/
 
 #header h1 {
 	float: left;
@@ -97,7 +97,6 @@ body
 	margin-right: 18px;
 	padding: 18px 14px;
 	float: left;
-	font-family: 'Glypha LT W01 55 Roman';
 	color: #fff;
 }
 
