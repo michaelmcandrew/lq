@@ -111,7 +111,7 @@
 	</div>
 
     <div id="main">
-    <?php if (isset($page['sidebar_second'])): ?>
+    <?php if ($page['sidebar_second']): ?>
       <div id="hpRight">
         <?php print render($page['sidebar_second']); ?>
       </div>
@@ -124,7 +124,7 @@
     <?php endif; ?>
     <?php if ($tabs): ?><?php print render($tabs); ?><?php endif; ?>
     <?php print render($page['content']); ?>
-    <?php if (isset($page['sidebar_second'])): ?>
+    <?php if ($page['sidebar_second']): ?>
       </div>        		
     <?php endif; ?>
     </div>
