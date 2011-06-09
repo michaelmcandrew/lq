@@ -70,6 +70,7 @@
 <head>
 	<script type="text/javascript" src="http://fast.fonts.com/jsapi/b063277d-b031-4c3d-8511-7ce99919e935.js"></script>
 </head>
+<?php dpm($page); ?> 
 <div id="wrapper">
 	<div id="header">
 		<?php if ($site_name): ?>
@@ -84,23 +85,21 @@
 
 		<?php print render($page['header']); ?>
     </div>
+  <?php if(count($page['banner_left']) && count($page['banner_right'])): ?>
 	<div id="banner">
-		<div id="bannerQuote">
-			<?php if(count($page['banner_left'])): ?>
-				<?php print render($page['banner_left']); ?>
-			<?php else: ?>
-				<p>This is the default text for when there is no banner quote specified</p>
-			<?php endif; ?>
+    <?php if(count($page['banner_left'])): ?>
+      <div id="bannerQuote">
+        <?php print render($page['banner_left']); ?>
+      </div>
+    <?php endif; ?>
 			
-		</div>
-		<div id="bannerImage">
-			<?php if(count($page['banner_right'])): ?>
-				<?php print render($page['banner_right']); ?>
-			<?php else: ?>
-				<img style="width: 622px; height: 260px;" src="/sites/all/themes/quake/images/banner-image-default.png" alt="">
-			<?php endif; ?>
-		</div>
+    <?php if(count($page['banner_right'])): ?>
+      <div id="bannerImage">
+        <?php print render($page['banner_right']); ?>
+      </div>
+    <?php endif; ?>
 	</div>
+  <?php endif; ?>
 	
 	<?php print $messages; ?>
 		
