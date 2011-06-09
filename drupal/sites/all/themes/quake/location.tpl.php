@@ -7,6 +7,7 @@
       <div class="street-address">
         <?php print $street; ?>
         <?php if (!empty($additional)): ?>
+          <br />
           <?php print $additional; ?>
         <?php endif; ?>
       </div>
