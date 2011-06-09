@@ -206,10 +206,6 @@ ul.inline li a {
 	margin: 0 0 20px 0;
 }
 
-
-
-
-
-
-
-
+.content .field {
+  margin-top: 1em;
+}
