@@ -110,7 +110,7 @@
 		<?php endif; ?>
 	</div>
 
-    <div id="main">
+  <div id="main">
     <?php if ($page['sidebar_second']): ?>
       <div id="hpRight">
         <?php print render($page['sidebar_second']); ?>
@@ -127,7 +127,7 @@
     <?php if ($page['sidebar_second']): ?>
       </div>        		
     <?php endif; ?>
-    </div>
+  </div>
 
     <div id="footer">
 	<div class="clear"></div>
