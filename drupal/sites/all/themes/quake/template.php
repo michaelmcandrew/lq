@@ -8,7 +8,7 @@ function quake_preprocess_page($variables){
 		$pathBasedCSS = array(
 			'events'=>'event',
 			'news'=>'news',
-			'map'=>'meeting'
+			'map'=>'meeting',
 			'meeting'=>'meeting'
 		);
 		$firstPageArgument = arg(0);
