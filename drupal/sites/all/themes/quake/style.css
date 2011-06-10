@@ -187,13 +187,10 @@ ul.inline li a {
 	margin: 0;
 	padding: 2px 0;
 	padding-left: 16px;
-	font-size: 1.1em;
+	font-size: 1.25em;
 	background: url(images/event-bullet.png) no-repeat 0 center;
 }
 
-.node-event h2 a, .node-news h2 a {
-	color: #2E2E2E;
-}
 
 /*.........news...........*/
 .node-news h2 {
