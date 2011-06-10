@@ -197,6 +197,11 @@ ul.inline li a {
 	background: url(images/news-bullet.png) no-repeat 0 center;
 }
 
+h2.comment-form { 
+	background: 0 none;
+	padding: 4px 0;
+}
+	
 .item-list .news-tease li {
 	margin: 0 0 20px 0;
 }
