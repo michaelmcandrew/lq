@@ -183,22 +183,20 @@ ul.inline li a {
 	color: #6E9ECE;	
 }
 
-.node-event h2, .node-article h2 {
-	font-family: Arial, Helvetica, Sans-serif;
-	font-size: 13px;
-	font-weight: bold;
+.node-event h2, .node-news h2 {
 	margin: 0;
 	padding: 2px 0;
 	padding-left: 16px;
+	font-size: 1.1em;
 	background: url(images/event-bullet.png) no-repeat 0 center;
 }
 
-.node-event h2 a, .node-article h2 a {
+.node-event h2 a, .node-news h2 a {
 	color: #2E2E2E;
 }
 
 /*.........news...........*/
-.node-article h2 {
+.node-news h2 {
 	background: url(images/news-bullet.png) no-repeat 0 center;
 }
 
