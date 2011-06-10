@@ -32,7 +32,7 @@ h4 {
 
 p {
 	margin: 8px 0;
-	line-height: 1.3em;
+	line-height: 1.45em;
 }
 
 body
@@ -183,25 +183,25 @@ ul.inline li a {
 	color: #6E9ECE;	
 }
 
-.node-event h2, .node-article h2 {
-	font-family: Arial, Helvetica, Sans-serif;
-	font-size: 13px;
-	font-weight: bold;
+.node-event h2, .node-news h2 {
 	margin: 0;
 	padding: 2px 0;
 	padding-left: 16px;
+	font-size: 1.25em;
 	background: url(images/event-bullet.png) no-repeat 0 center;
 }
 
-.node-event h2 a, .node-article h2 a {
-	color: #2E2E2E;
-}
 
 /*.........news...........*/
-.node-article h2 {
+.node-news h2 {
 	background: url(images/news-bullet.png) no-repeat 0 center;
 }
 
+h2.comment-form { 
+	background: 0 none;
+	padding: 4px 0;
+}
+	
 .item-list .news-tease li {
 	margin: 0 0 20px 0;
 }

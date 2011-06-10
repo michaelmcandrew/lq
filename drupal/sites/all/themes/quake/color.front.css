@@ -1,0 +1,17 @@
+/* fern */
+
+#logoBox {
+	background-image: url(images/fern-logo.gif);
+}
+
+h4 {
+	color: #939E60;
+}
+
+#bannerQuote { 
+	background-color: #939E60;
+}
+
+#leftCol ul li {
+	background-image: url(images/fern-dash.gif);
+}
