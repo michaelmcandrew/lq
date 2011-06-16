@@ -222,7 +222,7 @@ h2.comment-form {
 }
 
 .view-meetings-table tbody tr td {
-	padding: 4px;
+	padding: 8px 6px;
 }
 
 .view-meetings-table tbody tr.odd td {
@@ -233,6 +233,9 @@ h2.comment-form {
 	background-color: #fff; 
 }
 
+tr.even, tr.odd {
+	border: 0 none;
+}
 
 
 
