@@ -211,9 +211,12 @@ h2.comment-form {
 }
 
 /*.........meetings table...........*/
+#block-views-meetings-table-block {
+	margin-top: 30px;
+}
 
 .view-meetings-table thead tr {
-	height: 45px;
+	padding: 10px 4px;
 	background-color: #808c43;
 	color: #fff;
 }
