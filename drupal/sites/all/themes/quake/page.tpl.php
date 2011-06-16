@@ -89,7 +89,7 @@
 			<?php if(count($page['banner_left'])): ?>
 				<?php print render($page['banner_left']); ?>
 			<?php else: ?>
-				<p>This is the default text for when there is no banner quote specified</p>
+				<p>"Live adventurously. When choices arise, do you take the way that offers the fullest opportunity for the use of your gifts in the service of God and the community?"</p>
 			<?php endif; ?>
 			
 		</div>
@@ -97,7 +97,7 @@
 			<?php if(count($page['banner_right'])): ?>
 				<?php print render($page['banner_right']); ?>
 			<?php else: ?>
-				<img style="width: 622px; height: 260px;" src="/sites/all/themes/quake/images/banner-image-default.png" alt="">
+				<img style="width: 622px; height: 260px;" src="/sites/all/themes/quake/images/banner-image-home.png" alt="">
 			<?php endif; ?>
 		</div>
 	</div>

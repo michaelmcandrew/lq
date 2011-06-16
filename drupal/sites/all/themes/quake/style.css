@@ -209,3 +209,49 @@ h2.comment-form {
 .content .field {
   margin-top: 1em;
 }
+
+/*.........meetings table...........*/
+
+.view-meetings-table thead tr {
+	height: 45px;
+	background-color: #808c43;
+	color: #fff;
+}
+
+.view-meetings-table tbody tr td {
+	padding: 4px;
+}
+
+.view-meetings-table tbody tr.odd td {
+	background-color: #E4ECF5; 
+}
+
+.view-meetings-table tbody tr.even td {
+	background-color: #fff; 
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
