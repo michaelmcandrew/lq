@@ -215,7 +215,7 @@ h2.comment-form {
 	margin-top: 30px;
 }
 
-.view-meetings-table thead tr {
+.view-meetings-table thead tr td {
 	padding: 10px 4px;
 	background-color: #808c43;
 	color: #fff;
