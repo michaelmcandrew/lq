@@ -101,7 +101,8 @@ body
 }
 
 #bannerQuote p {
-	font-size: 1.56em;;
+	font-size: 1.56em;
+	line-height: 1.35em;
 }
 
 #bannerImage {
