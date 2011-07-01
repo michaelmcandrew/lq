@@ -138,7 +138,7 @@ body
 }
 	
 #main {
-	width: 622px;
+	width: 620px;
 	float: left;
 	padding-left: 18px;
 	border-left: 1px solid #6e9ece;
@@ -209,6 +209,14 @@ h2.comment-form {
 
 .content .field {
   margin-top: 1em;
+}
+
+body.page-news h2#page-title {
+	float: left;
+}
+
+body.page-news #block-system-main {
+	clear: left;
 }
 
 /*.........meetings table...........*/
