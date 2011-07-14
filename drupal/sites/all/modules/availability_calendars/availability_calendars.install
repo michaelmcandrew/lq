@@ -1,0 +1,541 @@
+<?php
+/**
+ * @file
+ * Install, update and uninstall functions for the Availability Calendars module.
+ *
+ * @author Dan Karran (geodaniel) <dan at karran dot net>
+ * @author Nicholas Alipaz (nicholas.alipaz)
+ * @author Erwin Derksen (http://drupal.org/user/750928)
+ */
+
+/**
+ * Implements hook_schema().
+ * @see http://api.drupal.org/api/drupal/modules--system--system.api.php/function/hook_schema/7
+ *
+ * @todo?: http://drupal.org/node/111011: Add foreign keys to core
+ */
+function availability_calendars_schema() {
+  $schema = array();
+  $schema['availability_calendars_day'] = array(
+    'description' => 'The table with availability states per day.',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'The primary identifier for a node.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE
+      ),
+      // [#747036]: using date instead of separate fields allows for better querying
+      // [#1083198]: Mysql, pgsql, mssql, and oracle support DATE type. Sqlite uses TEXT as type but has a lot of date functions
+      // 'yyyy-mm-dd' (iso 8601) is accepted by mysql, pgsql, mssql, sqlite. For oracle I could not find this information.
+      // The 'between' operator is inclusive on both sides on all databases: date between from and to  <=>  from <= date and date <= to
+      'date' => array(
+        'description' => 'Date of availability state.',
+        'mysql_type' => 'DATE',
+        'pgsql_type' => 'DATE',
+        'sqlite_type' => 'TEXT',  // SQLite does not have a DATE type
+        'not null' => TRUE,
+      ),
+      'status' => array(
+        'description' => 'The status.',
+        'type' => 'varchar',
+        'length' => 55,  // status = class or (split day) <am state>-am <pm state>-pm = 2 * (length of a class + 3) + 1
+      ),
+    ),
+    'primary key' => array('nid', 'date'),
+  );
+
+  $schema['availability_calendars_week'] = array(
+    'description' => 'The table for calendar days.',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'The primary identifier for a node.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'year' => array(
+        'description' => 'The number of the year.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'month' => array(
+        'description' => 'The number of the month.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'week' => array(
+        'description' => 'The number of the week.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'note' => array(
+        'description' => 'The status.',
+        'type' => 'varchar',
+        'length' => 64,
+      ),
+    ),
+    'primary key' => array('nid', 'year', 'month', 'week'),
+  );
+
+  $schema['availability_calendars_states'] = array(
+    'description' => 'Store classes and labels for the possible states in availability calendars',
+    'fields' => array(
+      'class' => array(
+        'description' => 'The class used for this state',
+        'type' => 'varchar',
+        'length' => 24,
+        'not null' => TRUE,
+      ),
+      'label' => array(
+        'description' => 'The label as displayed to users for this state',
+        'type' => 'varchar',
+        'length' => 64,  // should not be too long: will give display problems
+        'not null' => TRUE,
+      ),
+      'weight' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'The weight of this state',
+      ),
+      'is_available' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Boolean indicating whether this state is to be treated as available',
+      ),
+    ),
+    'primary key' => array('class'),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implements hook_install().
+ * @see http://api.drupal.org/api/drupal/modules--system--system.api.php/function/hook_install/7
+ */
+function availability_calendars_install() {
+  // Fill schema: add a default (starter, example) set of states to the database
+  $states = array(
+    array(
+      'class' => 'calav',
+      'label' => 'Available',
+      'weight' => 1,
+    ),
+    array(
+      'class' => 'calna',
+      'label' => 'Fully booked',
+      'weight' => 2,
+    ),
+    array(
+      'class' => 'calopt',
+      'label' => 'Provisionally booked',
+      'weight' => 3,
+    ),
+  );
+  foreach ($states as $state) {
+    db_insert('availability_calendars_states')
+      ->fields($state)
+      ->execute();
+  }
+
+  variable_set('availability_calendars_settings_system_generate', 1);
+  $styles = array(
+    'table' => array(
+      'font-size' => 'smaller',
+      'color' => '#000000',
+      'background-color' => '',
+      'border-width' => '1px',
+      'border-color' => '#000000',
+    ),
+    'caption' => array(
+      'font-weight' => 'bold',
+      'font-style' => 'inherit',
+      'font-size' => 'smaller',
+    ),
+    'header' => array(
+      'height' => '',
+      'font-weight' => 'bold',
+      'font-style' => 'inherit',
+      'font-size' => 'inherit',
+      'text-align' => 'center',
+    ),
+    'week_notes' => array(
+      'width' => '90px',
+    ),
+    'days' => array(
+      'width' => '28px',
+      'height' => '28px',
+      'text-align' => 'center',
+      'vertical-align' => 'middle',
+    ),
+    'states' => array(
+      'split-day'=> '/',
+    ),
+  );
+  // Fill default states
+  $styles['states']['calav'] = '#90ee90';
+  $styles['states']['calna'] = '#ffb6c1';
+  $styles['states']['calopt'] = '#ffffe0';
+  variable_set('availability_calendars_styles', $styles);
+  $link = l(st('Availability Calendars') . ' ' . st('Styling'), 'admin/config/content/availability-calendars/styling');
+  drupal_set_message(st("Please visit the '!link' page to generate a CSS file.", array('!link' => $link)), 'warning');
+  drupal_set_message(st('Availability Calendars module installed successfully.'), 'warning');
+}
+
+/**
+ * Utility function that is an altered version of variable_del, it will delete
+ * a set of variables set by a module.
+ *
+ * @param string $name The variables' namespace for which to delete
+ */
+function availability_calendars_variable_del_all($name) {
+  db_delete('variable')
+      ->condition('name', "$name%", 'LIKE')
+      ->execute();
+  cache_clear_all('variables', 'cache');
+}
+
+/**
+ * Implements hook_uninstall().
+ * @see http://api.drupal.org/api/drupal/modules--system--system.api.php/function/hook_uninstall/7
+ */
+function availability_calendars_uninstall() {
+  availability_calendars_variable_del_all('availability_calendars_');
+  file_unmanaged_delete_recursive('public://availability_calendars');
+  drupal_set_message(t('Availability Calendars module uninstalled successfully.'), 'warning');
+}
+
+/**
+ * Implements hook_update_last_removed().
+ * @see http://api.drupal.org/api/drupal/modules--system--system.api.php/function/hook_update_last_removed/7
+ *
+ * Returns the highest removed N number for removed hook_update_N hooks.
+ */
+function availability_calendars_update_last_removed() {
+  return 6103;
+}
+
+/**
+ * Add custom states (issue #306461)
+ */
+function availability_calendars_update_6200(&$sandbox) {
+  // Change type of field status of table availability_calendars_day,
+  // as it (kind of) refers to the class field of the new states table
+  db_change_field('availability_calendars_day', 'status', 'status', array('type' => 'varchar', 'length' => 64));
+
+  // Add table to store configurable statuses
+  $tables = availability_calendars_schema();  //DRY: get table def from schema
+  $table_name = 'availability_calendars_states';
+  db_create_table($table_name, $tables[$table_name]);
+
+  // Add existing (hard-coded) states to the database
+  $states = array(
+    array(
+      'class' => 'calavailable',
+      'label' => 'Available',
+      'weight' => 1,
+    ),
+    array(
+      'class' => 'calnotavailable',
+      'label' => 'Fully booked',
+      'weight' => 2,
+    ),
+    array(
+      'class' => 'calnotavailableprov',
+      'label' => 'Provisionally booked',
+      'weight' => 3,
+    ),
+  );
+  foreach ($states as $state) {
+    db_insert('availability_calendars_states')
+      ->fields($state)
+      ->execute();
+  }
+
+  // Update split statuses: the old way of assembling them did not work any more with configurable states and classes
+  $split_state_updates = array(
+    'calsplit cal-available_notavailable' => 'calsplit cal-calavailable_calnotavailable',
+    'calsplit cal-available_notavailableprov' => 'calsplit cal-calavailable_calnotavailableprov',
+    'calsplit cal-notavailable_available' => 'calsplit cal-calnotavailable_calavailable',
+    'calsplit cal-notavailable_notavailableprov' => 'calsplit cal-calnotavailable_calnotavailableprov',
+    'calsplit cal-notavailableprov_available' => 'calsplit cal-calnotavailableprov_calavailable',
+    'calsplit cal-notavailableprov_notavailable' => 'calsplit cal-calnotavailableprov_calnotavailable',
+  );
+  foreach ($split_state_updates as $state_update_old => $state_update_new) {
+    db_update('availability_calendars_day')
+      ->fields(array('status' => $split_state_update_new))
+      ->condition('status', $split_state_update_old)
+      ->execute();
+  }
+}
+
+/**
+ * Allow to disable per node override (issue #764406)
+ * On upgrades, the default should be set to 'on'.
+ */
+function availability_calendars_update_6201(&$sandbox) {
+  variable_set('availability_calendars_settings_system_pernodeoverride', 1);
+  return t('Update of Availability Calendars ran succesfully.');
+}
+
+/**
+ * Allow to define custom colors using administration interface (issue #660502)
+ * The upgrade should mimic the current availability_calendars.css as much as possible.
+ */
+function availability_calendars_update_6202(&$sandbox) {
+  // Update statuses: shorten them
+  $state_updates = array(
+    'calavailable' => 'calav',
+    'calnotavailable' => 'calna',
+    'calnotavailableprov' => 'calopt',
+  );
+  $update_states_query = "UPDATE {availability_calendars_states} SET class = '%s' WHERE class = '%s'";
+  $update_days_query = "UPDATE {availability_calendars_day} SET status = '%s' WHERE status = '%s'";
+  $success = TRUE;
+  foreach ($state_updates as $state_update_old => $state_update_new) {
+    db_query($update_states_query, $state_update_new, $state_update_old);
+    db_query($update_days_query, $state_update_new, $state_update_old);
+  }
+
+  // Update statuses: redefine storage for split day states
+  // - get unique split day statuses
+  // - for each of these: define an update entry/query (taking into account above renamings)
+  // - execute querys
+  $split_state_updates = array();
+  $result = db_query("SELECT distinct status FROM {availability_calendars_day} WHERE status LIKE 'calsplit %'");
+  while ($state = db_fetch_array($result)) {
+    $state = $state['status'];
+    // state = 'calsplit cal-<am>_<pm>'
+    // algorithm will fail with underscores in class names (not likely as 6200 to 6203 will be released at the same time)
+    $underscore = strpos($state, '_');
+    $am_state = substr($state, strlen('calsplit cal-'), $underscore - strlen('calsplit cal-'));
+    if (array_key_exists($am_state, $state_updates)) {
+      $am_state = $state_updates[$am_state];
+    }
+    $pm_state = substr($state, $underscore + 1);
+    if (array_key_exists($pm_state, $state_updates)) {
+      $pm_state = $state_updates[$pm_state];
+    }
+    $split_state_updates[$state] = "$am_state-am $pm_state-pm";
+  }
+  $update_query = "UPDATE {availability_calendars_day} SET status = '%s' WHERE status = '%s'";
+  foreach ($split_state_updates as $state_update_old => $state_update_new) {
+    db_query($update_query, $state_update_new, $state_update_old);
+  }
+
+  variable_set('availability_calendars_settings_system_generate', 1);
+  $styles = array(
+    'table' => array(
+      'font-size' => 'smaller',
+      'color' => '#000000',
+      'background-color' => '#ffffff',
+      'border-width' => '0px',
+      'border-color' => '#000000',
+    ),
+    'caption' => array(
+      'text-align' => 'left',
+      'font-weight' => 'bold',
+      'font-style' => 'inherit',
+      'font-size' => 'smaller',
+    ),
+    'header' => array(
+      'height' => '',
+      'font-weight' => 'bold',
+      'font-style' => 'inherit',
+      'font-size' => '',
+      'text-align' => 'center',
+    ),
+    'week_notes' => array(
+      'width' => '90px',
+    ),
+    'days' => array(
+      'width' => '28px',
+      'height' => '28px',
+      'text-align' => 'center',
+      'vertical-align' => 'middle',
+    ),
+    'states' => array(
+      'split-day' => '/',
+    ),
+  );
+  // Fill (default) states
+  $styles['states']['calav'] = '#90ee90';
+  $styles['states']['calna'] = '#ffb6c1';
+  $styles['states']['calopt'] = '#ffffe0';
+  variable_set('availability_calendars_styles', $styles);
+  $link = l(st('Availability Calendars') . ' ' . st('Styling'), 'admin/config/content/availability-calendars/styling');
+  drupal_set_message(st("Please visit the '!link' page to generate a CSS file.", array('!link' => $link)), 'warning');
+}
+
+
+/**
+ * Optimize storage for Availability Calendars (issue #1083198).
+ */
+function availability_calendars_update_7201(&$sandbox) {
+  // Change datetime field to date (text on sqlite).
+  // Assumption is that the conversion will be executed nicely by the database, keeping the date part...
+  db_change_field('availability_calendars_day', 'date', 'date', array(
+      'description' => 'Date of availability state.',
+      'mysql_type' => 'DATE',
+      'pgsql_type' => 'DATE',
+      'sqlite_type' => 'TEXT',  // SQLite does not have a DATE type
+      'not null' => TRUE,  // Primary key columns may not be null.
+    )
+  );
+
+  // Add primary key on nid, date.
+  // Drop first: people might already have added a primary key themselves (e.g. to edit the table in a db-tool).
+  db_drop_primary_key('availability_calendars_day');
+  db_add_primary_key('availability_calendars_day', array('nid', 'date'));
+
+  // Remove fields year, month, day. Do this after changing the type of the datetime field,
+  // and after setting the primary key (possibly removing it from these fields if set manually earlier).
+  // We will only get here if the prior operations succeeded and thus we can be quite sure that we will not
+  // loose any availability data.
+  db_drop_field('availability_calendars_day', 'day');
+  db_drop_field('availability_calendars_day', 'month');
+  db_drop_field('availability_calendars_day', 'year');
+
+  // Warn about a change that needs a regeneration of the CSS file
+  $link = l(st('Availability Calendars') . ' ' . st('Styling'), 'admin/config/content/availability-calendars/styling');
+  drupal_set_message(st("Please visit the '!link' page to regenerate the CSS file.", array('!link' => $link)), 'warning');
+}
+
+
+/**
+ * Optimize storage for Availability Calendars settings (issue #31107230).
+ */
+function availability_calendars_update_7202(&$sandbox) {
+  // - Combine these settings in 1 array in the variables table:
+  //   - startofweek
+  //   - showteaser
+  //   - showkey
+  //   - firstletter
+  //   - hideold
+  //   - defaultstatus
+  //   - monthcount
+  //   - splitday
+  //   - nodeview (exists only on system level)
+  //   Notes: the settings pernodeoverride and supported content types are kept separate
+  // - Rename availability_calendars_settings_system_generate to availability_calendars_styles_generate.
+  // - Rename availability_calendar_settings_system-type_... to availability_calendar_settings_content_type_....
+
+  // Group system settings
+  $settings_system = availability_calendars_get_settings_old();
+  $settings_styles_generate = variable_get('availability_calendars_settings_system_generate');
+  $settings_system_pernodeoverride = variable_get('availability_calendars_settings_system_pernodeoverride');
+
+  // Get content type settings into variables.
+  // Get each unique node id for which there are settings and group these in a 2nd loop further on
+  global $conf;
+  $settings_nodes = array();
+  $settings_content_types = array();
+  foreach ($conf as $name => $value) {
+    $matches = array();
+    if (preg_match('/^availability_calendars_settings_node_([0-9]+)_/', $name, $matches) > 0) {
+      $settings_nodes[$matches[1]] = TRUE;
+    }
+    else if (preg_match('/^availability_calendars_settings_system-type_(.+)$/', $name, $matches) > 0) {
+      $settings_content_types[$matches[1]] = $value;
+    }
+  }
+
+  // Group node settings
+  foreach ($settings_nodes as $nid => &$value) {
+    $value = availability_calendars_get_settings_old($nid);
+  }
+
+  // We now have all settings (except the styles) in local variables:
+  // - Remove old settings.
+  availability_calendars_variable_del_all('availability_calendars_settings_');
+
+  // - Store settings under their new names
+  variable_set('availability_calendars_settings_system', $settings_system);
+  variable_set('availability_calendars_settings_system_pernodeoverride', $settings_system_pernodeoverride);
+  variable_set('availability_calendars_styles_generate', $settings_styles_generate);
+  foreach ($settings_content_types as $content_type => $value) {
+    variable_set('availability_calendars_settings_content_type_' . $content_type, $value);
+  }
+  // The following loop *might* be time consuming, but for now I'm not rewriting it to do this in batches.
+  foreach ($settings_nodes as $nid => $value) {
+    variable_set('availability_calendars_settings_node_' . $nid, $value);
+  }
+}
+
+/**
+ * Helper method for availability_calendars_update_7202.
+ * Returns setings, at node or system scope, based on the old way of storing the settings.
+ */
+function availability_calendars_get_settings_old($arg = NULL) {
+  $settings = new stdClass();
+
+  if ($arg !== NULL) {
+    // Per node settings
+    $settings->startofweek = variable_get('availability_calendars_settings_node_' . $arg . '_startofweek');
+    $settings->showteaser = variable_get('availability_calendars_settings_node_' . $arg . '_showteaser');
+    $settings->showkey = variable_get('availability_calendars_settings_node_' . $arg . '_showkey');
+    $settings->firstletter = variable_get('availability_calendars_settings_node_' . $arg . '_firstletter');
+    $settings->hideold = variable_get('availability_calendars_settings_node_' . $arg . '_hideold');
+    $settings->defaultstatus = variable_get('availability_calendars_settings_node_' . $arg . '_defaultstatus');
+    $settings->monthcount = variable_get('availability_calendars_settings_node_' . $arg . '_monthcount');
+    $settings->splitday = variable_get('availability_calendars_settings_node_' . $arg . '_splitday');
+  }
+  else {
+    $settings->startofweek = variable_get('availability_calendars_settings_system_startofweek');
+    $settings->showteaser = variable_get('availability_calendars_settings_system_showteaser');
+    $settings->showkey = variable_get('availability_calendars_settings_system_showkey');
+    $settings->firstletter = variable_get('availability_calendars_settings_system_firstletter');
+    $settings->hideold = variable_get('availability_calendars_settings_system_hideold');
+    $settings->monthcount = variable_get('availability_calendars_settings_system_monthcount');
+    $settings->splitday = variable_get('availability_calendars_settings_system_splitday');
+    $settings->nodeview = variable_get('availability_calendars_settings_system_nodeview');
+  }
+
+  // Remove NULL values
+  $settings = (array) $settings; // PHP4 cannot iterate objects
+  $result = array();
+  foreach ($settings as $key => $value) {
+    if ($value !== NULL) {
+      $result[$key] = $value;
+    }
+  }
+  return $result;
+}
+
+
+/**
+ * Change storage defining content types enabled for Availability Calendars.
+ */
+function availability_calendars_update_7203(&$sandbox) {
+  $content_types = array();
+
+  foreach (node_type_get_names() as $content_type => $content_type_name) {
+    if (variable_get('availability_calendars_settings_content_type_' . $content_type, 0) == 1) {
+      $content_types[] = $content_type;
+    }
+  }
+  variable_set('availability_calendars_settings_content_types', $content_types);
+  availability_calendars_variable_del_all('availability_calendars_settings_content_type__');
+}
+
+
+/**
+ * Add a boolean field indicating if a state "is available" to the states table of Availability Calendars.
+ */
+function availability_calendars_update_7204(&$sandbox) {
+  $tables = availability_calendars_schema();  //DRY: get table def from schema
+  $table_name = 'availability_calendars_states';
+  $field_name = 'is_available';
+  db_add_field($table_name, $field_name, $tables[$table_name]['fields'][$field_name]);
+
+  // Warn user to define states as available/not-available
+  $link = l(st('Availability Calendars') . ' ' . st('Settings'), 'admin/config/content/availability-calendars/settings');
+  drupal_set_message(st("Please visit the '!link' page to define what states to treat as available.", array('!link' => $link)), 'warning');
+}

@@ -1,0 +1,131 @@
+Availability Calendars
+----------------------
+
+Availability Calendars 7.x-2.x yyyy-mm-dd
+-----------------------------------------
+
+Availability Calendars 7.x-2.2 2011-06-19
+-----------------------------------------
+- Issue [#1184474] by fietserwin: Strict warning: Only variables should be passed by reference in
+  availability_calendars_get_settings() line 77
+- By fietserwin: styling/rendering changes:
+  These changes may/will nullify any styling added by yourself!
+  * Class dayofweek is no longer used on the short day names (header). Use '.cal thead th' instead.
+  * Week notes are now rendered in a <th> instead of <td>
+  * Class calweeknote is no longer used on week notes. Use '.cal tbody th' instead.
+  * Week notes now may contain some html, e.g. strong or em (filter_xss instead of check_plain).
+  * Moved some settings from generated file to availability_calendars.base.css file.
+  * Added support to visually emphasize selectable cells (pointer and show border on hover).
+  * Changed rendering of day cells, using a <div> in the <td>'s for non split days, and changed
+    the usage of the 2 <span>'s in the split day situation.
+- By fietserwin: javascript changes/additions:
+  * Viewport functionality that wraps the number of months to show in a viewport, only showing a
+    given number of months. With buttons you can scroll through the months (limited by the number
+    of months shown/rendered: no ajax to retrieve more months).
+  * Days in a month can be tagged selectable: on hover the cursor changes to a pointer and a border
+    becomes visible. Only clicks on these cells will issue the calendarclick event. Cells that can
+    be made selectable: none, all, only available, or only non-available.
+  * Base API completely revised: now allows to change and restore(!) the state for a range of days
+    at once.
+  * Usage example for the viewport included in the js code files, other examples will follow.
+- By fietserwin: availability_calendars_get_settings() now includes nid and available states.
+
+Availability Calendars 7.x-2.1 2011-05-26
+-----------------------------------------
+- No issue by nicholas.alipaz: General code formatting and check on English language.
+- Issue [#1096146] by fietserwin: Added a viewport feature to show the calendar.
+- Issue [#470994] by fietserwin: Prerequisites:
+  * javascript Calendar API split over multiple files (generic, edit specific, display/search
+    specfic).
+  * function availability_calendars_get_states() is now part of the API (and therefore in the
+    .module file) and has a new parameter: filter on (non-)available states.
+  * added a wrapper div around all months of a calendar including some styling for it.
+  * added some more javascript API functions.
+  * add and process is_available field to states.
+- Issue [#937818] by fietserwin: Make edit (week notes and per day states) link optional and move
+  to edit availability calendar tab. Hide textarea.
+- By fietserwin (no issue): On node view, the settings were read from the node itself, whereas
+  they should be read from the translation containing the calendar.
+- By fietserwin (no issue): Not all styles that are present in the styling form were generated.
+- Issue [#1143658] by fietserwin: Move enabling calendar for content types to admin settings form.
+- By fietserwin: removed 'version' from info file, Drupal.org will add that.
+- Issue [#1083800] by fietserwin: Notes per Day: partial change: make week notes optional.
+- By fietserwin: Solved error in wrong regexp syntax in new range based calendar updating.
+- Regression of issue [#747992]: Also clear the cache when updating the calendar the new way.
+- By fietserwin: Changed behaviour after calendar saving: redirect to node view page.
+- Issue [#1107680] by fietserwin: No Configuration on admin/config menu.
+- Issue [#1107240] by fietserwin: Notice: Trying to get property of non-object in
+  availability_calendars_node_edit_form_alter().
+- Issue [#1107230] by fietserwin: Optimize storage for variables of Availability Calendars.
+- Issue [#937818] by fietserwin: Easier updating of calendars: book ranges at once.
+- By fietserwin: Empty days at the end of the month were not rendered with a span in them, leading
+  to tables with different heights.
+- By fietserwin (no issue): Due to incorrect bracketing, sticky headers was not set to FALSE but
+  passed as an attribute.
+- Renamed functions to better express their intent and when or how they are called.
+- Prepare for issue [#937818] by fietserwin: always render the span's in split day situation. Needs
+  a regeneration of the CSS file. (Already did this now to rewrite an unelegant piece of code.)
+- Issue [#1083198] by fietserwin: Optimize storage for tables of Availability Calendars.
+
+
+Availability Calendars 7.x-2.0 2011-03-19
+-----------------------------------------
+- Issue [#1027930] by fietserwin: Port availability calendars to D7.
+  Some remarks abouth changes that may surprise you at first sight:
+  * I used the list at http://drupal.org/update/modules/6/7 to see what had to be changed
+  * drupal_set_title: http://drupal.org/node/242873
+  * Implements hook_... in comments: http://drupal.org/node/472642
+  * No explicit calls to schema hooks in (un)install: http://drupal.org/node/306151
+
+
+Availability Calendars 6.x-2.0 2011-03-19
+-----------------------------------------
+- Issue [#1093408] by fietserwin: Winter/summer time offsets cause incorrect month labels. Not a
+  problem in D7, timezones are used correctly, but changed there as well to keep code in sync. 
+- Issue [#660502] by fietserwin: Custom colors using administration interface.
+  This change removed the code that was probably causing #1076786
+- By nicholas.alipaz: General code cleanup and removal of whitespace.
+- By fietserwin: commented out the code that probably causes #1076786.
+- Issue [#764406] by fietserwin: Allow admin to hide the calendar settings on the node edit page.
+- By fietserwin: Changed notes savings to no longer save empty notes.
+- By fietserwin: Added node delete handling (notes, day states and settings).
+- By fietserwin: Made availability calendar fieldset on node edit form collapsible and collapsed
+  by default.
+- By fietserwin: Removed translation of @date: incorrect use of t().
+- By fietserwin: Removed unused function availability_calendars_menu_callback. As a consequence,
+  availability_calendars_get_settings does no longer have to support scope = nodetype.
+- Issue [#1060214] by fietserwin: Prepare for D7 port:
+  * Resolved warnings given by coder module.
+  * Replaced use of arg in function availability_calendars_node_edit_form
+  * Renamed function availability_calendar_getsettings to availability_calendars_get_settings.
+  * Renamed function availability_calendars_save to availability_calendars_save_node_settings.
+  * Moved availability_calendars_key to theme_availability_calendars_key: will from now on thus
+    also be accessed as a theme function
+  * Drupal stores what comes in, and encodes/filters on output: do not store check_plain'ed user
+    input on form submit (nid, year, month, notes) in availability_calendars_node_edit_form_submit,
+    instead added check_plain in theme_availability_calendars_month instead.
+  * Removed (most) E_NOTICE warnings.
+  * Extracted database access to separate functions.
+  * Split code over multiple files (module, admin, node, page and inc). This reduces load on
+    requests that do not use the calendar functionality.
+- Issue #306461 by fietserwin: Added custom configurable availability states.
+- Branched from 6.x-1.6 (kind of, not if you look at the git history, yes functionally seen).
+
+
+Availability Calendars 6.x-1.x 2011-03-19
+-----------------------------------------
+- Issue [#1009216] by fietserwin: Date translation problem.
+- Issue [#1048010] by fietserwin: Changed cache clearing on save (that caused the settings to not
+  persist).
+
+
+Availability Calendars 6.x-1.5 2011-01-23
+-----------------------------------------
+Changes for version 6.x-1.5 and older were not logged in this file.
+
+
+Current and past maintainers for Availability Calendars
+-------------------------------------------------------
+- geodaniel (http://drupal.org/user/37266)
+- nicholas.alipaz (http://drupal.org/user/296276)
+- fietserwin (http://drupal.org/user/750928)

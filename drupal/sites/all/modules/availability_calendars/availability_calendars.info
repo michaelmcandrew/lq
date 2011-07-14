@@ -1,0 +1,19 @@
+name = Availability Calendars
+description = Allows for availability information to be displayed using calendars on specified content types.
+core = 7.x
+
+configure = admin/config/availability-calendars
+
+files[] = availability_calendars.module
+files[] = availability_calendars.inc
+files[] = availability_calendars.admin.inc
+files[] = availability_calendars.styles.inc
+files[] = availability_calendars.node.inc
+files[] = availability_calendars.page.inc
+
+; Information added by drupal.org packaging script on 2011-06-19
+version = "7.x-2.2"
+core = "7.x"
+project = "availability_calendars"
+datestamp = "1308478314"
+

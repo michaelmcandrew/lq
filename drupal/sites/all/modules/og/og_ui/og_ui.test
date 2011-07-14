@@ -1,0 +1,65 @@
+<?php
+// $Id: og_ui.test,v 1.1.2.4 2010/12/29 08:28:51 amitaibu Exp $
+
+class OgUiUserPermissionsTestCase extends DrupalWebTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Organic groups UI role permissions',
+      'description' => 'Verify that role permissions can be added and removed via the permissions page of the group.',
+      'group' => 'Organic groups UI'
+    );
+  }
+
+  function setUp() {
+    parent::setUp('og_ui');
+
+    $this->admin_user = $this->drupalCreateUser(array(
+      'bypass node access',
+      'administer content types',
+      'administer group',
+    ));
+    $this->drupalLogin($this->admin_user);
+
+    // Create group content type.
+    $group_type = $this->drupalCreateContentType();
+    $this->group_type = $group_type->type;
+
+    // Add og_group field.
+    og_create_field(OG_GROUP_FIELD, 'node', $this->group_type);
+
+    $node = $this->drupalCreateNode(array('type' => $group_type->type, 'og_group' => array(LANGUAGE_NONE => array(0 => array('value' =>TRUE)))));
+    $this->group = og_get_group('node', $node->nid);
+  }
+
+  /**
+   * Change user permissions and check og_user_access().
+   */
+  function testOgUiUserPermissionChanges() {
+    $web_user = $this->drupalCreateUser();
+    $gid = $this->group->gid;
+    $this->assertTrue(og_user_access($gid, 'subscribe', $web_user), t('User has "subscribe" permission.'));
+
+    $roles = og_get_default_roles();
+    $roles = array_flip(array_keys($roles['og']));
+
+    // Remove a permission.
+    $edit = array();
+    $edit['1[subscribe]'] = FALSE;
+    $this->drupalPost('admin/config/group/permissions', $edit, t('Save global permissions'));
+    $this->assertText(t('The changes have been saved.'), t('Successful save message displayed.'));
+
+    // FIXME: Understand why reseting the static cache isn't enough.
+    $this->resetAll();
+
+    $this->assertFalse(og_user_access($gid, 'subscribe', $web_user), t('User now does not have "subscribe" permission.'));
+
+    // Re-add permission.
+    $edit = array();
+    $edit['1[subscribe]'] = TRUE;
+    $this->drupalPost('admin/config/group/permissions', $edit, t('Save global permissions'));
+
+    $this->resetAll();
+
+    $this->assertTrue(og_user_access($gid, 'subscribe', $web_user), t('User has "subscribe" permission again.'));
+  }
+}

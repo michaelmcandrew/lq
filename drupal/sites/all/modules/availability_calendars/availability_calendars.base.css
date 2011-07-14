@@ -1,0 +1,155 @@
+/*
+ * Styling your calendar:
+ * - This file contains some basic calendar styling.
+ * - Visit admin/config/content/availability-calendars/styling to define some more styling.
+ * - Finally resort to your theme style sheets to define any requested styling.
+ *
+ * A calendar is rendered as follows:
+ * div#availabitlity-calendar-{nid}.availability-calendar
+ *   div.availability-calendars-viewport            ? optional when the viewport functionality is enabled
+ *     div.availability-calendars-viewport-inner    ? optional
+ *       div.calmonth-wrapper                       * repeated for each month
+ *         table#cal-{year}-{month}-{nid}.cal.calmonth
+ *           caption                                contains month name
+ *           thead
+ *             tr
+ *               th                                 ? optiponal, if weeknotes are enabled, empty
+ *               th                                 * repeated 7 times, containing short names of the days
+ *           tbody
+ *             tr.calweek                           * repeated 6 times, class calweek only if row does contain day cells
+ *               th                                 ? optiponal, if weeknotes are enabled, contains weeknote
+ *               td.cal...                          * repeated 7 times, representing a day in the month, class defines state(s) of that day
+ *                 span                             containing day number in case of no split days, or the span below with split days
+ *                   span                           ?optional, only with split days, containing day number 
+ */
+.calmonth-wrapper {
+  float: left;
+  margin: 0 6px 6px;
+}
+
+.cal {
+  margin: 0;
+  padding: 0;
+}
+
+.cal caption {
+  margin: 6px 6px 0;
+  padding: 0;
+  border-bottom: 1px solid #aaa;
+}
+
+table.cal tr th, table.cal tr td {
+  margin: 0;
+  padding: 0;
+}
+
+/*
+ * Special statuses
+ */
+.calother, .calother > span,
+.calpastdate, .calpastdate span  {
+  background-color: transparent;
+  border-color: transparent;
+}
+
+.caltoday {
+  font-weight: bolder;
+}
+
+.calselected {
+  font-weight: bolder;
+  font-size: larger;
+}
+
+/*
+ * Clickable calendars.
+ * Clickable valid day cells (not in the past and having a state defined as
+ * available) get a class calselectable. These classes are added via js, as
+ * that is required anyway to react to the clicking.
+ */
+.calselectable {
+  cursor: pointer;
+}
+
+/* div for no split days, inner span for split days */
+.cal td > div, .cal td > span > span {
+  border: 1px solid transparent;
+}
+
+/* Table cells and spans cannot get focus, so no need to define that as well */
+.calselectable:hover > div, .calselectable:hover > span > span {
+  border-color: #aaa;
+}
+
+/*
+ * Settings to gte day number and coloring according to state for split days
+ */
+.cal td > span {
+  display: block;
+  position: relative;
+  border-style: solid;
+  border-color: transparent;
+}
+
+.cal td > span > span {
+  position: absolute;
+  z-index: 1;
+}
+
+/*
+ * Key
+ */
+.keystatus {
+  padding-left: 2px;
+}
+
+.cal td.keystatus span {
+  width: auto;
+}
+
+/*
+ * Edit calendar form.
+ * - Show states and changes on the same line (won't work on IE7-, they will see the elements below each other).
+ * - Display radio buttons and labels as a table (so that the colored labels get the same length).
+ */
+.form-type-radios.form-item-availability-states, .form-item-availability-changes {
+  display: inline-block;
+  width: 49%;
+  vertical-align: top;
+}
+
+.form-type-radios.form-item-availability-states {
+  width: 33%;
+}
+
+.form-item-availability-changes {
+  width: 66%;
+}
+
+#edit-availability-states {
+  display: table;
+}
+
+#edit-availability-states .form-item-availability-states {
+  display: table-row;
+}
+
+#edit-availability-states .form-item-availability-states input,
+#edit-availability-states .form-item-availability-states label {
+  display: table-cell;
+}
+
+/*
+ * View calendar through a viewport, also see availability_calendars.view.js.
+ */
+.availability-calendars-viewport {
+  position: relative;
+  overflow: hidden;
+}
+
+.availability-calendars-viewport-inner {
+  position: relative;
+  top: 0;
+  left: 0;
+  overflow: visible;
+}

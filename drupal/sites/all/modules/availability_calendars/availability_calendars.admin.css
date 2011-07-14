@@ -1,0 +1,11 @@
+/* admin settings form */
+.fieldset-description{margin-bottom: 1em;}
+fieldset.state-list .form-item{padding:0;}
+fieldset.state-list .state-item{position:relative;width:100%;overflow:auto;clear:left;}
+fieldset.state-list .cal-state-label,fieldset.state-list .form-item{float:left;margin-right:1em;}
+fieldset.state-list .cal-state-label .form-item{margin:0;float:none;}
+fieldset.state-list input.form-radio{margin-right:5em;}
+fieldset.state-list input.form-checkbox{margin-right:6em;}
+
+/* admin styles form */
+#availability-calendars-styles fieldset .form-item label{display:inline-block;width:130px;}

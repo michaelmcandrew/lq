@@ -1,0 +1,324 @@
+<?php
+/**
+ * @file
+ * Availability Calendars module. Allows for availability information to be
+ * displayed using calendars on specified content types.
+ *
+ * Originally based on the Availability Module.
+ *
+ * This file contains the hooks and other functions that must be present in the .module file.
+ *
+ * @todo: support variable module?
+ * @todo: use advanced help module: move "multi line help" to advanced help (with on-page links?)
+ * @todo: clean up old data? (#533486)
+ * @todo: return render arrays from theme functions
+ * @todo: can/should we flush css aggregation on uninstall?
+ * @todo: translation of availability states: do not use t() but i18n strings?
+ * @todo: show morning of today as calpastdate in case of split days?
+ * @todo: allow to not output striping classes odd and even (no-striping on theme(table))?
+ * @todo: add calother, calpastdate, (caltoday) to styling screen?
+ *
+ * @author Dan Karran (geodaniel) <dan at karran dot net>
+ * @author Nicholas Alipaz (nicholas.alipaz)
+ * @author Erwin Derksen (http://drupal.org/user/750928)
+ */
+
+/**
+ * Implements hook_init().
+ * @see http://api.drupal.org/api/drupal/modules--system--system.api.php/function/hook_init/7
+ * Currently just adds our css files to pages.
+ */
+function availability_calendars_init() {
+  // CSS is added to all pages to allow for aggregation.
+  // Base css.
+  drupal_add_css(drupal_get_path('module', 'availability_calendars') . '/availability_calendars.base.css', array('every_page' => TRUE));
+  // Generated CSS.
+  $file = 'public://availability_calendars/availability_calendars.css';
+  if (is_readable($file)) {
+    drupal_add_css($file, array('every_page' => TRUE));
+  }
+}
+
+/**
+ * Implements hook_permission().
+ * @see http://api.drupal.org/api/drupal/modules--system--system.api.php/function/hook_permission/7
+ */
+function availability_calendars_permission() {
+  return array(
+    'edit availability calendars' => array(
+      'title' => t('Administer the availabilty calendars module'),
+      'description' => t('Perform maintenance tasks and edit all calendars of the availabilty calendars module'),
+    ),
+    'edit own availability calendars' => array(
+      'title' => t('Edit own availabilty calendars'),
+      'description' => t('Change settings and edit own calendars of the availabilty calendars module'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ * @see http://api.drupal.org/api/drupal/modules--system--system.api.php/function/hook_menu/7
+ */
+function availability_calendars_menu() {
+  $items = array();
+  $items['admin/config/content/availability-calendars'] = array(
+    'title' => 'Availability Calendars',
+    'description' => 'Configure global settings for availability calendars module.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('availability_calendars_admin_settings'),
+    'access arguments' => array('edit availability calendars'),
+    'file' => 'availability_calendars.admin.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['admin/config/content/availability-calendars/settings'] = array(
+    'title' => 'Settings',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+  $items['admin/config/content/availability-calendars/styling'] = array(
+    'title' => 'Styling',
+    'description' => 'Define CSS styles for Availability Calendars.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('availability_calendars_styles'),
+    'access arguments' => array('edit availability calendars'),
+    'file' => 'availability_calendars.styles.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['node/%node/edit-availability-calendar'] = array(
+    'title' => 'Edit Availability Calendar',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('availability_calendars_node_edit_calendar_form', 1),
+    'access callback' => 'availability_calendars_tab_access',
+    'access arguments' => array(1),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 2,
+    'file' => 'availability_calendars.node.inc',
+  );
+  $items['availability-calendars/%node'] = array(
+    'title' => 'Availability calendar',
+    'page callback' => 'availability_calendars_edit_calendar',
+    'page arguments' => array(1),
+    'access callback' => 'availability_calendars_can_edit',
+    'access arguments' => array(1),
+    'file' => 'availability_calendars.node.inc',
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Menu access callback.
+ *
+ * Only display availability calendars tab for node types, which have availability calendars enabled.
+ */
+function availability_calendars_tab_access($node) {
+  return availability_calendars_is_supported_type($node->type) && availability_calendars_can_edit($node);
+}
+
+/**
+ * A callback function to see if user should be allowed to edit the calendar.
+ *
+ * @global object $user
+ * @param object $node node object
+ * @return boolean
+ */
+function availability_calendars_can_edit($node) {
+  $result = FALSE;
+  if (user_access('edit availability calendars')) {
+    $result = TRUE;
+  }
+  elseif (user_access('edit own availability calendars')) {
+    if ($node) {
+      global $user;
+      $result = $user->uid == $node->uid;
+    }
+  }
+  return $result;
+}
+
+/**
+ * Implements hook_theme().
+ * @see http://api.drupal.org/api/drupal/modules--system--system.api.php/function/hook_theme/7
+ */
+function availability_calendars_theme() {
+  $today = getdate();
+  return array(
+    'availability_calendars_node' => array(
+      'variables' => array(
+        'node' => NULL,
+        'year' => $today['year'],
+        'month' => $today['mon'],
+        'settings' => NULL,
+      ),
+      'file' => 'availability_calendars.page.inc',
+    ),
+    'availability_calendars_month' => array(
+      'variables' => array(
+        'node' => NULL,
+        'year' => $today['year'],
+        'month' => $today['mon'],
+        'settings' => NULL,
+      ),
+      'file' => 'availability_calendars.page.inc',
+    ),
+    'availability_calendars_key' => array(
+      'variables' => array(),
+      'file' => 'availability_calendars.page.inc',
+    ),
+  );
+}
+
+/**
+ * Implements hook_form_BASE_FORM_ID_alter(). Alters node edit forms for supported content types.
+ * @see http://api.drupal.org/api/drupal/modules--system--system.api.php/function/hook_form_BASE_FORM_ID_alter/7
+ */
+function availability_calendars_form_node_form_alter(&$form, &$form_state, $form_id) {
+  // Alter node edit form if availability support is enabled for that content type
+  if (availability_calendars_override_per_node() && availability_calendars_is_supported_type($form['type']['#value'])) {
+    module_load_include('inc', 'availability_calendars', 'availability_calendars.node');
+    return availability_calendars_node_edit_form_alter($form, $form_state, $form_id);
+  }
+}
+
+/**
+ * Implements D7 hook_node_view.
+ * @see http://api.drupal.org/api/drupal/modules--node--node.api.php/function/hook_node_view/7
+ */
+function availability_calendars_node_view($node, $view_mode = 'full', $langcode = NULL) {
+  if (availability_calendars_is_supported_type($node->type)) {
+    module_load_include('inc', 'availability_calendars', 'availability_calendars.page');
+    availability_calendars_page_node_view($node, $view_mode);
+  }
+}
+
+/**
+ * Implements D7 hook_node_insert.
+ * @see http://api.drupal.org/api/drupal/modules--node--node.api.php/function/hook_node_insert/7
+ */
+function availability_calendars_node_insert($node) {
+  if (availability_calendars_override_per_node() && availability_calendars_is_supported_type($node->type)) {
+    module_load_include('inc', 'availability_calendars', 'availability_calendars.node');
+    availability_calendars_save_node_settings($node);
+  }
+}
+
+/**
+ * Implements D7 hook_node_update.
+ * @see http://api.drupal.org/api/drupal/modules--node--node.api.php/function/hook_node_update/7
+ */
+function availability_calendars_node_update($node) {
+  if (availability_calendars_override_per_node() && availability_calendars_is_supported_type($node->type)) {
+    module_load_include('inc', 'availability_calendars', 'availability_calendars.node');
+    availability_calendars_save_node_settings($node);
+  }
+}
+
+/**
+ * Implements D7 hook_node_delete.
+ * @see http://api.drupal.org/api/drupal/modules--node--node.api.php/function/hook_node_delete/7
+ */
+function availability_calendars_node_delete($node) {
+  if (availability_calendars_is_supported_type($node->type)) {
+    module_load_include('inc', 'availability_calendars', 'availability_calendars');
+    availability_calendars_delete_node($node->nid);
+  }
+}
+
+/**
+ * Implements D7 hook_block_info().
+ * @see http://api.drupal.org/api/drupal/modules--block--block.api.php/function/hook_block_info/7
+ */
+function availability_calendars_block_info() {
+  $blocks = array(
+    'key' => array(
+      'info' => t('Availability Calendar Key'),
+      'cache' => DRUPAL_CACHE_GLOBAL,
+    ),
+  );
+  return $blocks;
+}
+
+/**
+ * Implements D7 hook_block_view().
+ * @see http://api.drupal.org/api/drupal/modules--block--block.api.php/function/hook_block_view/7
+ */
+function availability_calendars_block_view($delta = '') {
+  if ($delta == 'key') {
+    $block = array(
+      'subject' => t('Availability Key'),
+      'content' => theme('availability_calendars_key'),
+    );
+    return $block;
+  }
+}
+
+/**
+ * Returns an array of records of all states.
+ * Optionally filtered by the is_available flag.
+ *
+ * @param boolean|NULL $is_available
+ *   Filter on is_available state (boolean) or do not filter at all (NULL (default)).
+ * @return array
+ *   Array of records keyed by the class.
+ */
+function availability_calendars_get_states($is_available = NULL) {
+  module_load_include('inc', 'availability_calendars', 'availability_calendars');
+  return availability_calendars_get_states_inc($is_available);
+}
+
+
+/**
+ * Returns a javascript settings array for the @see AvailabilityCalendars
+ * javascript class.
+ *
+ * @param object|int $nid
+ *   Settings object or nid. If a nid is passed in, the settings of that node
+ *   will be used.
+ * @param string $selectable
+ *   all|available|not-available|none.
+ * @return array Array with javascript settings that should be passed to
+ *    @see drupal_add_js().
+ */
+function availability_calendars_get_js_settings($nid, $selectable) {
+  module_load_include('inc', 'availability_calendars', 'availability_calendars');
+  $settings = $nid === NULL || is_object($nid) ? $nid : availability_calendars_get_settings('node', $nid);
+  return availability_calendars_get_js_settings_inc($settings, $selectable);
+}
+
+/**
+ * Adds required js files, script, and settings.
+ *
+ * The js added depends on the type of functionality required by $mode.
+ *
+ * @param string $mode
+ *   Type of functionality required: 'empty' (API only), 'edit', or 'viewport'.
+ * @param array|NULL $js_settings
+ *   Javascript settings to be added to the rendered page.
+ * @param object|int|NULL $nid
+ *   Settings object, nid or empty. If a nid is passed in,
+ *   the settings of that node will be used.
+ */
+function availability_calendars_add_js($mode = '', $js_settings = NULL, $nid = NULL) {
+  module_load_include('inc', 'availability_calendars', 'availability_calendars');
+  $settings = $nid === NULL || is_object($nid) ? $nid : availability_calendars_get_settings('node', $nid);
+  return availability_calendars_add_js_inc($mode, $js_settings, $settings);
+}
+
+/**
+ * Indicates whether overriding settings on a per node basis is allowed.
+ *
+ * @return boolean
+ */
+function availability_calendars_override_per_node() {
+  return variable_get('availability_calendars_settings_system_pernodeoverride', 0) != 0;
+}
+
+/**
+ * Indicates whether the given content type supports availability calendars.
+ *
+ * @param string $type
+ * @return boolean
+ */
+function availability_calendars_is_supported_type($type) {
+  return in_array($type, variable_get('availability_calendars_settings_content_types', array()));
+}
