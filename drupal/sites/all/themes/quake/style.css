@@ -98,6 +98,7 @@ body
 	padding: 18px 14px;
 	float: left;
 	color: #fff;
+	background-color: #BF507A;
 }
 
 #bannerQuote p {
@@ -119,6 +120,11 @@ body
 #leftCol ul li {
 	background-position: 0 bottom;
 	background-repeat: no-repeat;
+	background-image: url(images/pink-dash.gif);
+}
+
+#leftCol ul li.leaf { 
+	list-style: none outside none;
 }
 
 #leftCol ul li.last {
@@ -219,26 +225,26 @@ body.page-news #block-system-main {
 	clear: left;
 }
 
-/*.........meetings table...........*/
-#block-views-meetings-table-block {
+/*.........tables...........*/
+table {
 	margin-top: 30px;
 }
 
-.view-meetings-table thead tr th {
+.content thead tr th {
 	padding: 10px 4px;
 	background-color: #808c43;
 	color: #fff;
 }
 
-.view-meetings-table tbody tr td {
+.content tbody tr td {
 	padding: 8px 6px;
 }
 
-.view-meetings-table tbody tr.odd td {
+.content tbody tr.odd td {
 	background-color: #E4ECF5; 
 }
 
-.view-meetings-table tbody tr.even td {
+.content tbody tr.even td {
 	background-color: #fff; 
 }
 
