@@ -1,0 +1,305 @@
+<?php
+// $Id: starrating.module,v 1.1 2010/12/20 20:13:52 pixture Exp $
+
+/**
+ * @file
+ * Provides star rating field, formatter and widget using Field API.
+ * star rating field is based on integer value and convert it to the HTML code
+ * that displays series of icons.
+ * The formatter supports not only star rating field type but also regular
+ * integer (number) and list (number) field types. 
+ *
+ * Following hook functions are provided.
+ *
+ * Field Type API: defines field type
+ *  - hook_field_info()
+ *  - hook_field_schema()
+ *  - hook_field_is_empty()
+ *  - hook_field_settings_form()
+ *
+ * Field Type API (Formatter): defines formatter (for displaying field)
+ *  - hook_field_formatter_info()
+ *  - hook_field_formatter_settings_form()
+ *  - hook_field_formatter_settings_summary()
+ *  - hook_field_formatter_view()
+ *
+ * Field Type API (Widget): defines widget (for entering value to field)
+ *  - hook_field_widget_info()
+ *  - hook_field_widget_form() 
+ */
+
+define('DEFAULT_MAX_RATING_VALUE', 5);
+
+/**
+ *  Debug function 
+ */
+function starrating_debug($str) {
+  if(is_array($str) || is_object($str)) {
+    error_log(print_r($str, TRUE) . "\r\n", 3, "/tmp/starrating.txt");
+  }
+  else {
+    error_log($str . "\r\n", 3, "/tmp/starrating.txt");
+  }
+}
+
+/*
+ ****************************************************************************
+ * Field Type API hooks
+ ****************************************************************************
+ */
+
+/**
+ * Implements hook_field_info().
+ */
+function starrating_field_info() {
+  return array(
+    'starrating_rating' => array(
+      'label' => t('Star rating'),
+      'default_widget' => 'starrating_rating_widget',
+      'default_formatter' => 'starrating_rating_formatter',
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_is_empty().
+ */
+function starrating_field_is_empty($item, $field) {
+  if (empty($item['value']) && (string) $item['value'] !== '0') {
+    // 0 is OK!
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/**
+ * Implements hook_field_settings_form().
+ */
+function starrating_field_settings_form($field, $instance, $has_data) {
+
+  $max_value = isset($field['settings']['max_value'])? $field['settings']['max_value'] : DEFAULT_MAX_RATING_VALUE;
+
+  $form['max_value'] = array(
+    '#type' => 'select',
+    '#title' => t('Maximum rating value'),
+    '#options' => array(1=>'1', 2=>'2', 3=>'3', 4=>'4', 5=>'5', 6=>'6', 7=>'7', 8=>'8', 9=>'9', 10=>'10'),
+    '#default_value' => $max_value,
+    '#description' => t('Select the maximum rating value of this field.'),
+  );
+  return $form;
+}
+
+/*
+ ****************************************************************************
+ * Field Type API: Formatter
+ ****************************************************************************
+ */
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function starrating_field_formatter_info() {
+  return array(
+    'starrating_rating_formatter' => array(
+      'label' => t('Star rating'),
+      'field types' => array('number_integer', 'list_number', 'starrating_rating'),
+      'settings' => array(
+        'fill_blank' => 1,
+        'icon_type' => 'star',
+        'icon_color' => 1,
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function starrating_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  $element = array();
+
+  $element['fill_blank'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Fill with blank icons'),
+    '#default_value' => $settings['fill_blank'],
+  );
+
+  $element['icon_type'] = array(
+    '#type' => 'select',
+    '#title' => t('Icon type'),
+    '#options' => array(
+      'star'       => t('Star'),
+      'star-line'  => t('Star (outline)'),
+      'check'      => t('Check'),
+      'heart'      => t('Heart'),
+      'dollar'     => t('Dollar'),
+      'smiley'     => t('Smiley'),
+      'food'       => t('Food'),
+      'coffee'     => t('Coffee'),
+      'movie'      => t('Movie'),
+      'music'      => t('Music'),
+      'human'      => t('Human'),
+      'thumbs-up'  => t('Thumbs Up'),
+      'car'        => t('Car'),
+      'airplane'   => t('Airplane'),
+      'fire'       => t('Fire'),
+      'drupalicon' => t('Drupalicon'),
+      'custom'     => t('Custom'),
+    ),
+    '#default_value' => $settings['icon_type'],
+    // '#prefix' => '<img src="/' . drupal_get_path('module', 'starrating') . '/icons/sample.png"  style="border: solid 1px #888" />',
+    '#prefix' => '<img src="/' . drupal_get_path('module', 'starrating') . '/icons/sample.png" />',
+  );
+  $element['icon_color'] = array(
+    '#type' => 'select',
+    '#title' => t('Icon color'),
+    '#options' => array(1=>'1', 2=>'2', 3=>'3', 4=>'4', 5=>'5', 6=>'6', 7=>'7', 8=>'8'),
+    '#default_value' => $settings['icon_color'],
+  );
+
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function starrating_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  $options = array(
+    'type' => 'file',
+    'weight' => 10,
+    'group' => CSS_DEFAULT,
+  );
+  $css_file = $settings['icon_type'] . '.css';
+  drupal_add_css(drupal_get_path('module', 'starrating') . '/icons/'. $css_file, $options);
+
+  $min = 0;
+  $max = isset($field['settings']['max_value'])? $field['settings']['max_value'] : DEFAULT_MAX_RATING_VALUE;
+
+  $rate = $max - 1;  // sample data to be used for summary view
+
+  $summary = starrating_field_formatter_execute($rate, $min, $max, $settings['icon_type'], $settings['icon_color'], $settings['fill_blank']);
+
+  return $summary;
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function starrating_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $settings = $display['settings'];
+  $element = array();
+
+  $options = array(
+    'type' => 'file',
+    'weight' => 10,
+    'group' => CSS_DEFAULT,
+  );
+  $css_file = $settings['icon_type'] . '.css';
+  drupal_add_css(drupal_get_path('module', 'starrating') . '/icons/'. $css_file, $options);
+
+  $min = 0;
+  $max = isset($field['settings']['max_value'])? $field['settings']['max_value'] : DEFAULT_MAX_RATING_VALUE;
+
+  if (!isset($items[0]['value'])) {
+    $value = 0;
+  }
+  else {
+    $value = $items[0]['value'];
+  }
+
+  $output = starrating_field_formatter_execute($value, $min, $max, $settings['icon_type'], $settings['icon_color'], $settings['fill_blank']);
+  $element[] = array('#markup' => $output);
+
+  return $element;
+}
+
+/**
+ * Convert integer value to star rating HTML code
+ *
+ * @input
+ *   $rate - integer value of rating
+ * @output
+ *   HTML code for star rating icons 
+ *   <div class="(icon_type)(icon_color)-on"></div> ... 
+ * 
+ */
+function starrating_field_formatter_execute($rate, $min, $max, $icon_type, $icon_color, $fill_blank) {
+
+  $rate = intval($rate);
+  // if the rate value is 0, then return 'n/a'
+  if ($rate == 0) return t('n/a');
+
+  // if the rate value not within the valid value range, return the original value
+  if (($rate < $min) || ($rate > $max)) return $rate;
+
+  $out = "\n";
+  $out .= '<div class="starrating">';
+
+  // add hidden text to support copy/paste and voice reading
+  $out .= '<span style="position:absolute;left:-9999px">' . $rate . '</span>';
+
+  for($i = $min ; $i < $max ; $i++) {
+    if (($i == $rate) && (!$fill_blank)) break;
+    if ($i >= $rate) {
+      $class = $icon_type . '-off';
+    }
+    else {
+      $class = $icon_type . $icon_color . '-on';
+    }
+    if ($i % 2) $class .= ' odd';
+    else $class .= ' even';
+    $class .= ' s' . ($i+1);
+
+    $out .= '<div class="' . $class . '"></div>';
+  }
+  $out .= "</div>\n";
+
+  return $out;
+}
+
+/*
+ ****************************************************************************
+ * Field Type API: Widget
+ ****************************************************************************
+ */
+
+/**
+ * Implements hook_field_widget_info().
+ */
+function starrating_field_widget_info() {
+  return array(
+    'starrating_rating_widget' => array(
+      'label' => t('Star rating'),
+      'field types' => array('starrating_rating'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_widget_form().
+ */
+function starrating_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+  $default_value = (!empty($items[$delta]['value'])) ? $items[$delta]['value'] : 0;
+
+  $max_value = isset($field['settings']['max_value'])? $field['settings']['max_value'] : DEFAULT_MAX_RATING_VALUE;
+
+  $options = array();
+  $options[0] = t('Not selected');
+  for ($i = 1 ; $i <= $max_value ; $i++) {
+    $options[$i] = $i;
+  }
+
+  $element += array(
+    '#type' => 'select',
+    '#default_value' => $default_value,
+    '#options' => $options,
+  );
+
+  return $element;
+}

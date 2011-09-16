@@ -1,0 +1,64 @@
+/* $Id: star-line.css,v 1.1 2010/12/20 20:13:52 pixture Exp $ */
+.star-line-off {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('star-line.png') no-repeat 0px 0px;
+}
+.star-line1-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('star-line.png') no-repeat 0px -14px;
+}
+.star-line2-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('star-line.png') no-repeat 0px -28px;
+}
+.star-line3-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('star-line.png') no-repeat 0px -42px;
+}
+.star-line4-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('star-line.png') no-repeat 0px -56px;
+}
+.star-line5-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('star-line.png') no-repeat 0px -70px;
+}
+.star-line6-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('star-line.png') no-repeat 0px -84px;
+}
+.star-line7-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('star-line.png') no-repeat 0px -98px;
+}
+.star-line8-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('star-line.png') no-repeat 0px -112px;
+}

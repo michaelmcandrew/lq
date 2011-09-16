@@ -1,0 +1,66 @@
+1. .css file has to have the name (icon_type).css. (icon_type) is defined in the module file.
+
+
+2. .css file has to have the 5 div entiries.
+
+ div.(icon_type)(icon-color)-on    ... used for displaying the rating icon
+ div.(icon_type)-off               ... used for displaying the blank icon
+
+ These div element should define the following attributes.
+
+ div.(icon_type)(icon_color)-on {
+   float: left;  /* use 'right' for the RTL languages */
+   width: ??px;  /* width of the icon */
+   height: ??px; /* height of the icon */
+ }
+
+For example, in case of the icon type 'star', div.star1-on, div.star2-on ... and div.star-off should be defined in the CSS file. 
+
+
+3. Additional classes
+
+The star rating div tags has following additional classese so that users can customize the result by defining/overriding CSS style.
+
+  even, odd
+  s1, s2, s3, s4, s5  (for 5 star rating)
+  s1, s2, ....... s10 (for 10 star rating)
+
+
+4. Icon image
+
+Below is the figure of icon image used. However, it's depends on the CSS file and not neccesarry to be like below.
+
+ (0,0)           (width, 0)
+  +-------------+
+  |             |
+  |             |
+  | Blank icon  | 
+  |             |
+  |             |
+  +-------------+ (width, height)
+  |             |
+  |             |
+  | Normal icon |
+  |  (color 1)  |
+  |             |
+  |             |
+  +-------------+ (width, height x 2)
+  |             |
+  |             |
+  | Normal icon |
+  |  (color 2)  |
+  |             |
+  |             |
+  +-------------+ (width, height x 3)
+  |             |
+         :
+         :
+  |             |
+  +-------------+
+  |             |
+  |             |
+  | Normal icon |
+  |  (color 7)  |
+  |             |
+  |             |
+  +-------------+

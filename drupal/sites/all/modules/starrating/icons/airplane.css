@@ -1,0 +1,64 @@
+/* $Id: airplane.css,v 1.1 2010/12/20 20:13:52 pixture Exp $ */
+.airplane-off {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('airplane.png') no-repeat 0px 0px;
+}
+.airplane1-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('airplane.png') no-repeat 0px -14px;
+}
+.airplane2-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('airplane.png') no-repeat 0px -28px;
+}
+.airplane3-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('airplane.png') no-repeat 0px -42px;
+}
+.airplane4-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('airplane.png') no-repeat 0px -56px;
+}
+.airplane5-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('airplane.png') no-repeat 0px -70px;
+}
+.airplane6-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('airplane.png') no-repeat 0px -84px;
+}
+.airplane7-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('airplane.png') no-repeat 0px -98px;
+}
+.airplane8-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('airplane.png') no-repeat 0px -112px;
+}

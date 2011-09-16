@@ -1,0 +1,64 @@
+/* $Id: star.css,v 1.1 2010/12/20 20:13:52 pixture Exp $ */
+.star-off {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('star.png') no-repeat 0px 0px;
+}
+.star1-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('star.png') no-repeat 0px -14px;
+}
+.star2-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('star.png') no-repeat 0px -28px;
+}
+.star3-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('star.png') no-repeat 0px -42px;
+}
+.star4-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('star.png') no-repeat 0px -56px;
+}
+.star5-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('star.png') no-repeat 0px -70px;
+}
+.star6-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('star.png') no-repeat 0px -84px;
+}
+.star7-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('star.png') no-repeat 0px -98px;
+}
+.star8-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('star.png') no-repeat 0px -112px;
+}

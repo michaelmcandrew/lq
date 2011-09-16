@@ -1,0 +1,64 @@
+/* $Id: drupalicon.css,v 1.1 2010/12/20 20:13:52 pixture Exp $ */
+.drupalicon-off {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('drupalicon.png') no-repeat 0px 0px;
+}
+.drupalicon1-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('drupalicon.png') no-repeat 0px -14px;
+}
+.drupalicon2-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('drupalicon.png') no-repeat 0px -28px;
+}
+.drupalicon3-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('drupalicon.png') no-repeat 0px -42px;
+}
+.drupalicon4-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('drupalicon.png') no-repeat 0px -56px;
+}
+.drupalicon5-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('drupalicon.png') no-repeat 0px -70px;
+}
+.drupalicon6-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('drupalicon.png') no-repeat 0px -84px;
+}
+.drupalicon7-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('drupalicon.png') no-repeat 0px -98px;
+}
+.drupalicon8-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('drupalicon.png') no-repeat 0px -112px;
+}

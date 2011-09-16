@@ -1,0 +1,64 @@
+/* $Id: fire.css,v 1.1 2010/12/20 20:13:52 pixture Exp $ */
+.fire-off {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('fire.png') no-repeat 0px 0px;
+}
+.fire1-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('fire.png') no-repeat 0px -14px;
+}
+.fire2-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('fire.png') no-repeat 0px -28px;
+}
+.fire3-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('fire.png') no-repeat 0px -42px;
+}
+.fire4-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('fire.png') no-repeat 0px -56px;
+}
+.fire5-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('fire.png') no-repeat 0px -70px;
+}
+.fire6-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('fire.png') no-repeat 0px -84px;
+}
+.fire7-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('fire.png') no-repeat 0px -98px;
+}
+.fire8-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('fire.png') no-repeat 0px -112px;
+}

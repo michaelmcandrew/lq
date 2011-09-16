@@ -1,0 +1,64 @@
+/* $Id: dollar.css,v 1.1 2010/12/20 20:13:52 pixture Exp $ */
+.dollar-off {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('dollar.png') no-repeat 0px 0px;
+}
+.dollar1-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('dollar.png') no-repeat 0px -14px;
+}
+.dollar2-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('dollar.png') no-repeat 0px -28px;
+}
+.dollar3-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('dollar.png') no-repeat 0px -42px;
+}
+.dollar4-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('dollar.png') no-repeat 0px -56px;
+}
+.dollar5-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('dollar.png') no-repeat 0px -70px;
+}
+.dollar6-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('dollar.png') no-repeat 0px -84px;
+}
+.dollar7-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('dollar.png') no-repeat 0px -98px;
+}
+.dollar8-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('dollar.png') no-repeat 0px -112px;
+}

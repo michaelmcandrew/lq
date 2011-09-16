@@ -1,0 +1,64 @@
+/* $Id: human.css,v 1.1 2010/12/20 20:13:52 pixture Exp $ */
+.human-off {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('human.png') no-repeat 0px 0px;
+}
+.human1-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('human.png') no-repeat 0px -14px;
+}
+.human2-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('human.png') no-repeat 0px -28px;
+}
+.human3-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('human.png') no-repeat 0px -42px;
+}
+.human4-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('human.png') no-repeat 0px -56px;
+}
+.human5-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('human.png') no-repeat 0px -70px;
+}
+.human6-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('human.png') no-repeat 0px -84px;
+}
+.human7-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('human.png') no-repeat 0px -98px;
+}
+.human8-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('human.png') no-repeat 0px -112px;
+}

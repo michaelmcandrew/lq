@@ -1,0 +1,64 @@
+/* $Id: check.css,v 1.1 2010/12/20 20:13:52 pixture Exp $ */
+.check-off {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('check.png') no-repeat 0px 0px;
+}
+.check1-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('check.png') no-repeat 0px -14px;
+}
+.check2-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('check.png') no-repeat 0px -28px;
+}
+.check3-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('check.png') no-repeat 0px -42px;
+}
+.check4-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('check.png') no-repeat 0px -56px;
+}
+.check5-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('check.png') no-repeat 0px -70px;
+}
+.check6-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('check.png') no-repeat 0px -84px;
+}
+.check7-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('check.png') no-repeat 0px -98px;
+}
+.check8-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('check.png') no-repeat 0px -112px;
+}

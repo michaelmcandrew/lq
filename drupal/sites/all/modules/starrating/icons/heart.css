@@ -1,0 +1,64 @@
+/* $Id: heart.css,v 1.1 2010/12/20 20:13:52 pixture Exp $ */
+.heart-off {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('heart.png') no-repeat 0px 0px;
+}
+.heart1-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('heart.png') no-repeat 0px -14px;
+}
+.heart2-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('heart.png') no-repeat 0px -28px;
+}
+.heart3-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('heart.png') no-repeat 0px -42px;
+}
+.heart4-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('heart.png') no-repeat 0px -56px;
+}
+.heart5-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('heart.png') no-repeat 0px -70px;
+}
+.heart6-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('heart.png') no-repeat 0px -84px;
+}
+.heart7-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('heart.png') no-repeat 0px -98px;
+}
+.heart8-on {
+  float: left;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: url('heart.png') no-repeat 0px -112px;
+}
