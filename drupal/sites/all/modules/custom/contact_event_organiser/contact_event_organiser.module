@@ -1,10 +1,8 @@
 <?php
 
-
 function contact_event_organiser_node_view($node, $view_mode, $langcode) {
-
-	//if this is not the full view of a event content type, then return
-	if($node->type!='event' OR $view_mode!='full'){
+	//if this is not the full view of a event or news content type, then return
+	if($node->type!='event' OR $node->type!='news' OR $view_mode!='full'){
 		return;
 	};
 	
@@ -17,10 +15,9 @@ function contact_event_organiser_node_view($node, $view_mode, $langcode) {
 		'#weight' => 10
 	);
 	$node->content['contact_event_organiser_title']=array(
-		'#markup' => '<h3>Contact event organiser</h3',
+		'#markup' => '<h3>Contact event organiser</h3>',
 		'#weight' => 9
 	);
-	
 }
 
 function contact_event_organiser_form($form, &$form_state, $node){
@@ -54,11 +51,9 @@ function contact_event_organiser_form($form, &$form_state, $node){
 
 function contact_event_organiser_form_validate($form, $form_state){
 	if ($form_state['values']['email'] && !valid_email_address($form_state['values']['email'])) {
-	    form_set_error('email', t('The e-mail address you specified is not valid.'));
+    form_set_error('email', t('The e-mail address you specified is not valid.'));
 		return;
 	}
-//    form_set_error('email', t('The e-mail address you specified is totally poop!'));
-
 }
 
 function contact_event_organiser_form_submit($form, $form_state){
@@ -79,18 +74,14 @@ Extra info: '{$form_state['values']['text']}'
 ";
 	
 	drupal_mail('contact_event_organiser', 'notice', $params['to'], user_preferred_language($account), $params);
-    drupal_set_message("Your email has been sent and copied to the address that you specified above ({$form_state['values']['name']}).");
+  drupal_set_message("Your email has been sent and copied to the address that you specified above ({$form_state['values']['name']}).");
 }
 
 function contact_event_organiser_mail($key, &$message, $params) {
-	
 	$message['to'] = $params['to'];
 	$message['subject'] = $params['subject'];
 	$message['body'][] = $params['body'];
 	$message['from'] = $params['from'];
 	$message['headers']=array('Cc' => $params['cc']);
-	
 }
-
-
 
