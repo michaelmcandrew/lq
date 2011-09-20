@@ -2,7 +2,7 @@
 
 function contact_event_organiser_node_view($node, $view_mode, $langcode) {
 	//if this is not the full view of a event or news content type, then return
-	if($node->type!='event' OR $node->type!='news' OR $view_mode!='full'){
+	if(($node->type!='event' AND $node->type!='news') OR $view_mode!='full'){
 		return;
 	};
 	
