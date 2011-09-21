@@ -101,14 +101,15 @@
 		</div>
 
 		<?php print $messages; ?>
-
-		<div id="leftCol">
+		
+		<div id="contentWrap">
+			<div id="leftCol">
 			<?php if ($page['sidebar_first']): ?>
 				<?php print render($page['sidebar_first']); ?>
 			<?php endif; ?>
 		</div>
 
-		<div id="main">
+			<div id="main">
 			<?php if ($page['sidebar_second']): ?>
 				<div id="hpRight">
 					<?php print render($page['sidebar_second']); ?>
@@ -125,7 +126,10 @@
 				<?php print render($page['content']); ?>
 			</div>        		
 		</div>
-
-		<div id="footer"></div>
+		</div>
+		
+		<div id="footer">
+			<?php print render($page['footer']); ?>
+		</div>
 	</div>
 </div>

@@ -112,6 +112,10 @@ body
 	float: right;
 }
 
+#contentWrap {
+	overflow: hidden;
+}
+
 #leftCol {
 	width: 259px;
 	float: left;
@@ -168,9 +172,19 @@ body
 }
 
 #footer {
-	height: 30px;
-	line-height: 30px;
 	clear: both;
+	margin-top: 30px;
+	padding: 5px 0;
+	text-align: right;
+}
+
+#footer .content a {
+	font-size: 0.8em;
+	color: #c9c9c9;
+}
+
+#footer .content a:hover {
+	color: #2E2E2E;
 }
 
 /*...........events............*/
