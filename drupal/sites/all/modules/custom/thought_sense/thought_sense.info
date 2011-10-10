@@ -1,0 +1,4 @@
+name = Thought Sense
+description = Creates menus based on a special something or other
+package = London Quakers custom modules
+core = 7.x

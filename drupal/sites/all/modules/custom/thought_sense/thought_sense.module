@@ -1,0 +1,42 @@
+<?php
+function thought_sense_block_info(){
+	$blocks['meeting-menu'] = array(
+	    'info' => t('Meeting menu'), 
+	    'cache' => DRUPAL_NO_CACHE,
+  	);
+  	return $blocks;
+}
+
+function thought_sense_block_view($delta = '') {
+	$path_array=explode('/', $_SERVER['REQUEST_URI']);
+	if(!isset($path_array[2])){
+		return;
+	}
+	if ( arg(0) == 'node' && is_numeric(arg(1)) && ! arg(2) ) {
+		$node = node_load(arg(1));
+		if($node->type == 'meeting'){
+			$nid = $node->nid;
+		}
+	}
+	if(!isset($nid)){
+		$nid = $path_array[2];
+	}
+	if (($path_array[1]=='meeting') || (($path_array[1]=='node') && ($node->type == 'meeting'))) {	
+		$block = array();
+		switch ($delta) {
+			case 'meeting-menu':
+			//$block['subject'] = t('Meeting menu');
+			$block['content'] = "
+			<ul>
+			<li><a href='/node/{$nid}'>Meeting home page</a></li>
+			<li><a href='/meeting/{$nid}/events'>Events</a></li>
+			<li><a href='/meeting/{$nid}/rooms'>Rooms for hire</a></li>
+			<li><a href='/'>Back to London Quakers</a></li>
+			</ul>";
+			break;
+
+		}
+		return $block;
+	}
+}
+?>
