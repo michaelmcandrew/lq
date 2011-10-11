@@ -1,0 +1,291 @@
+.clear {
+	clear: both;
+}
+
+a {
+	text-decoration: none;
+	color: #5a8cc5;
+}
+
+a:hover
+{
+	text-decoration: none;
+}
+
+#main a:hover {
+	text-decoration: underline;
+}
+
+h2, h2 a {
+	color: #5a8cc5;
+}
+
+h2 {
+	padding: 4px 0;
+	font-size: 1.6em;
+	font-weight: normal;
+}
+
+h4 {
+	padding: 2px 0;
+}
+
+p {
+	margin: 8px 0;
+	line-height: 1.45em;
+}
+
+body
+{
+	font-family: Arial, Helvetica, Georgia, Sans-serif;
+	font-size: 0.8em;
+	text-align: center;
+	color: #2e2e2e;
+	background-color: #739cce;
+}
+
+/*...........structure............*/
+#wrapper {
+	width: 900px;
+	margin: 0 auto;
+	padding: 0 30px;
+	text-align: left;
+	background-color: #fff;
+}
+
+#header {
+	height: 130px;
+	margin-bottom: 18px;
+}
+
+/*#header h1, #leftCol ul a, h2 {
+	font-family: 'Glypha LT W01 55 Roman';
+}*/
+
+#header h1 {
+	float: left;
+	margin-top: 60px;
+	font-size: 3.2em;
+	font-weight: normal;
+}
+
+#header h1 a {
+	display: block;
+}
+
+#logoBox {
+	width: 131px;
+	height: 131px;
+	float: right;
+	margin-top: 16px;
+	background: url(images/blue-logo.gif) no-repeat 0 0;
+}
+
+#banner {
+	height: 260px;
+	margin-bottom: 18px;
+}
+
+#banner p {
+	margin: 0;
+}
+
+#bannerQuote {	
+	width: 232px;
+	height: 224px;
+	margin-right: 18px;
+	padding: 18px 14px;
+	float: left;
+	color: #fff;
+	background-color: #739cce;
+}
+
+#bannerQuote p {
+	font-size: 1.56em;
+	line-height: 1.35em;
+}
+
+#bannerImage {
+	width: 622px;
+	height: 260px;
+	float: right;
+}
+
+#contentWrap {
+	overflow: hidden;
+}
+
+#leftCol {
+	width: 259px;
+	float: left;
+}
+
+#leftCol ul li {
+	background-position: 0 bottom;
+	background-repeat: no-repeat;
+	background-image: url(images/lqpt-dash.gif);
+}
+
+#leftCol ul li.leaf { 
+	list-style: none outside none;
+}
+
+#leftCol ul li.last {
+	background: 0 none;
+}
+
+#leftCol ul a {
+	margin: 4px 0 6px 0;
+	padding: 3px 0;
+	display: inline-block;
+	color: #5a8cc5;
+	font-size: 1.4em;
+}
+
+#leftCol ul a:hover { 
+	background-color: #d2dfef;
+}
+	
+#main {
+	width: 620px;
+	float: left;
+	padding-left: 18px;
+	border-left: 1px solid #5a8cc5;
+}
+
+#pageIntro {
+	width: 100%;
+	float: left;
+}
+
+.front #pageIntro {
+	width: 290px;
+}
+
+#hpRight {
+	width: 292px;
+	margin-left: 18px;
+	padding-left: 18px;
+	float: right;
+	border-left: 1px solid #5a8cc5;
+}
+
+#footer {
+	clear: both;
+	margin-top: 30px;
+	padding: 5px 0;
+	text-align: right;
+}
+
+#footer .content a {
+	font-size: 0.8em;
+	color: #c9c9c9;
+}
+
+#footer .content a:hover {
+	color: #2E2E2E;
+}
+
+/*...........events............*/
+.view-events .views-row {
+	margin-bottom: 15px;
+}
+
+.node-event h3 a {
+	color: #2e2e2e;
+}
+
+ul.inline li {
+	padding: 0 5px 0 0;
+}
+
+ul.inline li a {
+	color: #5a8cc5;	
+}
+
+.node-event h2, .node-news h2 {
+	margin: 0;
+	padding: 2px 0;
+	padding-left: 16px;
+	font-size: 1.25em;
+	background: url(images/event-bullet.png) no-repeat 0 center;
+}
+
+
+/*.........news...........*/
+.node-news h2 {
+	background: url(images/news-bullet.png) no-repeat 0 center;
+}
+
+h2.comment-form { 
+	background: 0 none;
+	padding: 4px 0;
+}
+	
+.item-list .news-tease li {
+	margin: 0 0 20px 0;
+}
+
+.content .field {
+  margin-top: 1em;
+}
+
+body.page-news h2#page-title {
+	float: left;
+}
+
+body.page-news #block-system-main {
+	clear: left;
+}
+
+/*.........tables...........*/
+table {
+	margin-top: 30px;
+}
+
+.content thead tr th {
+	padding: 10px 4px;
+	background-color: #808c43;
+	color: #fff;
+}
+
+.content tbody tr td {
+	padding: 8px 6px;
+}
+
+.content tbody tr.odd td {
+	background-color: #E4ECF5; 
+}
+
+.content tbody tr.even td {
+	background-color: #fff; 
+}
+
+tr.even, tr.odd {
+	border: 0 none;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
