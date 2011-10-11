@@ -1,0 +1,16 @@
+
+name = "ThemeKey Features (Experimental!)"
+description = "Integrates ThemeKey with Features. Warning! Don't use in production! Highly Experimental!"
+core = 7.x
+dependencies[]= themekey
+dependencies[]= features
+package = ThemeKey
+
+
+
+; Information added by drupal.org packaging script on 2011-09-19
+version = "7.x-1.5"
+core = "7.x"
+project = "themekey"
+datestamp = "1316422908"
+
