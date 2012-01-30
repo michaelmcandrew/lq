@@ -1,4 +1,9 @@
 <?php
+/*
+ * Implements hook_block_info().
+ *
+ * Tells drupal that we are providing a custom block in this module.
+ */
 function thought_sense_block_info(){
 	$blocks['meeting-menu'] = array(
 	    'info' => t('Meeting menu'), 
@@ -7,34 +12,55 @@ function thought_sense_block_info(){
   	return $blocks;
 }
 
+/*
+ * Implements hook_block_view().
+ *
+ * Creates a special block for meeting pages.
+ * Meeting pages are those with this style of url:
+ * londonquakers.org.uk/meeting/blackheath
+ *
+ * The 'Meeting menu' block is configured in the UI to appear
+ * on pages where the path is 'meeting/*'
+ */
 function thought_sense_block_view($delta = '') {
-	$path_array=explode('/', $_SERVER['REQUEST_URI']);
+  $path_array=explode('/', $_SERVER['REQUEST_URI']);
+  // $path_array[1] = meeting
+  // $path_array[2] = blackheath
 	if(!isset($path_array[2])){
 		return;
-	}
-	if ( arg(0) == 'node' && is_numeric(arg(1)) && ! arg(2) ) {
+  }
+  // Note that meeting/blackheath is an alias for node/3
+  // Even if the url is londonquakers.org.uk/meeting/blackheath,
+  // arg(0) will contain 'node' and arg(1) will contain '3'.
+	if ( arg(0) == 'node' && is_numeric(arg(1)) && !arg(2) ) {
 		$node = node_load(arg(1));
 		if($node->type == 'meeting'){
-			$nid = $node->nid;
+      $nid = $node->nid;
+      $title = $node->title;
 		}
 	}
-	if(!isset($nid)){
-		$nid = $path_array[2];
+  if(!isset($nid)){
+		// deal with urls like meeting/3/events
+    $nid = $path_array[2];
+    $node = node_load($nid);
+    $title = $node->title;
 	}
 	if (($path_array[1]=='meeting') || (($path_array[1]=='node') && ($node->type == 'meeting'))) {	
 		$block = array();
 		switch ($delta) {
 			case 'meeting-menu':
-			//$block['subject'] = t('Meeting menu');
-			$block['content'] = "
-			<ul>
-			<li><a href='/node/{$nid}'>Meeting home page</a></li>
-			<li><a href='/meeting/{$nid}/events'>Events</a></li>
-			<li><a href='/meeting/{$nid}/rooms'>Rooms for hire</a></li>
-			<li><a href='/'>Back to London Quakers</a></li>
-			</ul>";
-			break;
-
+        //$block['subject'] = t('Meeting menu');
+        $block['content'] = "
+        <ul>
+        <li><a href='/node/{$nid}'>$title Meeting</a></li>
+        <li><a href='/meeting/{$nid}/events'>Events</a></li>
+        <li><a href='/meeting/{$nid}/rooms'>Rooms for Hire</a></li>
+        <li><a href='/'>Back to London Quakers</a></li>
+        </ul>";
+        // This sets the site_name temporarily.
+        // see: d.o/node/253447
+        $GLOBALS['conf']['site_name'] = "$title Quaker Meeting";
+        break;
 		}
 		return $block;
 	}
