@@ -136,7 +136,9 @@ function gmap_gmap($op, &$map) {
       drupal_add_js($path . 'icon.js');
       drupal_add_js($path . 'marker.js');
       drupal_add_js($path . 'highlight.js');
-      drupal_add_js('/sites/default/files/js/gmap_markers.js');
+      // d.o/node.1061444
+      //drupal_add_js('/sites/default/files/js/gmap_markers.js');
+      drupal_add_js('sites/default/files/js/gmap_markers.js');
       drupal_add_js($path . 'gmap_marker.js');
       drupal_add_js($path . 'poly.js');  
     
