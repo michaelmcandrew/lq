@@ -1,0 +1,9 @@
+name = feedr
+description = RSS feed with different selection criteria from the default
+package = London Quakers custom modules
+core = 7.x
+version = "7.x-1"
+
+
+
+

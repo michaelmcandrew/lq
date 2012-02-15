@@ -1,0 +1,38 @@
+<?php
+
+/**
+ * @file
+ * Provides an RSS feed with a different selection from the default in rss.xml
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function feedr_menu() {
+  $items['feedr.xml'] = array(
+    'title' => 'RSS feed by RWH',
+    'page callback' => 'feedr',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Generates an RSS feed
+ */
+function feedr() {
+
+    $nids = db_select('node', 'n')
+      ->fields('n', array('nid', 'created'))
+      ->condition('n.type', 'event')
+      ->condition('n.status', 1)
+      ->orderBy('n.changed', 'DESC')
+      ->range(0, variable_get('feed_default_items', 10))
+      ->addTag('node_access')
+      ->execute()
+      ->fetchCol();
+
+    node_feed($nids);
+}
+
