@@ -54,6 +54,8 @@ function thought_sense_block_view($delta = '') {
 	}
 	if (($path_array[1]=='meeting') || (($path_array[1]=='node') && (($node->type == 'meeting') || ($node->type == 'meeting_page')))) {	
 
+    $pages_html = '';
+
     // find out if this meeting has any meeting pages
     $query = new EntityFieldQuery;
     $query
