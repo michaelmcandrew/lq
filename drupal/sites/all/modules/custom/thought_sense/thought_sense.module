@@ -38,6 +38,13 @@ function thought_sense_block_view($delta = '') {
       $nid = $node->nid;
       $title = $node->title;
 		}
+    if($node->type == 'meeting_page') {
+      // find the meeting to which this meeting page belongs
+      // and get its nid
+      $nid = $node->field_member_of_meeting['und'][0]['nid'];
+      $meeting_nid = node_load($nid);
+      $title = $meeting_nid->title;
+    }
 	}
   if(!isset($nid)){
 		// deal with urls like meeting/3/events
@@ -45,7 +52,26 @@ function thought_sense_block_view($delta = '') {
     $node = node_load($nid);
     $title = $node->title;
 	}
-	if (($path_array[1]=='meeting') || (($path_array[1]=='node') && ($node->type == 'meeting'))) {	
+	if (($path_array[1]=='meeting') || (($path_array[1]=='node') && (($node->type == 'meeting') || ($node->type == 'meeting_page')))) {	
+
+    // find out if this meeting has any meeting pages
+    $query = new EntityFieldQuery;
+    $query
+      ->entityCondition('entity_type', 'node')
+      ->entityCondition('bundle', 'meeting_page')
+      ->fieldCondition('field_member_of_meeting', 'nid', $nid, '=');
+    $result = $query->execute();
+
+    if ($result) {
+      // entity_load takes an array of node ids
+      $pages = entity_load('node', array_keys($result['node']));
+      foreach($pages as $page) {
+        $page_nid = $page->nid;
+        $page_title = $page->title;
+        $pages_html .= "<li><a href='/node/$page_nid'>$page_title</a></li>";
+      }
+    }
+
 		$block = array();
 		switch ($delta) {
 			case 'meeting-menu':
@@ -55,6 +81,7 @@ function thought_sense_block_view($delta = '') {
         <li><a href='/node/{$nid}'>$title Meeting</a></li>
         <li><a href='/meeting/{$nid}/events'>Events</a></li>
         <li><a href='/meeting/{$nid}/rooms'>Rooms for Hire</a></li>
+        $pages_html
         <li><a href='/'>Back to London Quakers</a></li>
         </ul>";
         // This sets the site_name temporarily.
