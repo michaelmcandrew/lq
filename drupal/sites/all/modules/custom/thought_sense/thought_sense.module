@@ -58,11 +58,10 @@ function thought_sense_block_view($delta = '') {
         <li><a href='/'>Back to London Quakers</a></li>
         </ul>";
         // This sets the site_name temporarily.
-        // see: d.o/node/253447
+        // see: drupal.org/node/253447
         $GLOBALS['conf']['site_name'] = "$title Quaker Meeting";
         break;
 		}
 		return $block;
 	}
 }
-?>
