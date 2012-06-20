@@ -1,0 +1,4 @@
+name = LQPT redirects
+description = Ensure that LQPT content is served from the LQPT domain and that LQ content is served from the LQ domain 
+package = London Quakers custom modules
+core = 7.x
