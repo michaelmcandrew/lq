@@ -4,6 +4,10 @@ function redirect_6wm_boot(){
   $lqpt_host = 'www.6wm.org.uk';
   $lq_host = 'www.londonquakers.org.uk';
   $lqpt_start = '6';
+
+  if($_SERVER['HTTP_HOST']!=$lqpt_host AND $_SERVER['HTTP_HOST']!=$lq_host){
+    return;
+  }
   
   $host = $_SERVER['HTTP_HOST'];
   $uri = $_SERVER['REQUEST_URI'];
@@ -16,14 +20,26 @@ function redirect_6wm_boot(){
     exit;
   }
   //Else if the first part of the URI is lqpt and we are not on the lqpt domain, the we should redirect to lqpt domain
-  elseif($uri_start==$lqpt_start AND $host!=$lqpt_host ){
+  if($uri_start==$lqpt_start AND $host!=$lqpt_host ){
     header("Location: http://{$lqpt_host}{$uri}");
     exit;
   }
   //Else if the first part of the URI is not lqpt and we are not on the lq domain then we should redirect to the lq domain
-  elseif($uri_start!=$lqpt_start AND $host!=$lq_host ){
+  if($uri_start!=$lqpt_start AND $host!=$lq_host ){
     header("Location: http://{$lq_host}{$uri}");
     exit;
   }
 }
-?>
+
+function redirect_6wm_preprocess_page(&$variables){
+  if($_SERVER['HTTP_HOST']=='www.6wm.org.uk'){
+    $variables['site_name']='Six Weeks Meeting';
+  }
+}
+
+function redirect_6wm_preprocess_html(&$variables){
+  if($_SERVER['HTTP_HOST']=='www.6wm.org.uk'){
+    $variables['head_title']=str_replace(' | London Quakers', ' | Six Weeks Meeting', $variables['head_title']);
+  }
+}
+
