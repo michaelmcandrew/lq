@@ -5,7 +5,7 @@ function redirect_6wm_boot(){
   $lq_host = 'www.londonquakers.org.uk';
   $lqpt_start = '6';
 
-  if($_SERVER['HTTP_HOST']!=$lqpt_host AND $_SERVER['HTTP_HOST']!=$lq_host){
+  if($_SERVER['HTTP_HOST']!=$lqpt_host AND $_SERVER['HTTP_HOST']!=$lq_host AND $_SERVER['HTTP_HOST']!='6wm.org.uk' AND $_SERVER['HTTP_HOST']!='londonquakers.org.uk'){ // TODO - could change this to ends in londonquakers.org.uk, etc. to make it more robust
     return;
   }
   
