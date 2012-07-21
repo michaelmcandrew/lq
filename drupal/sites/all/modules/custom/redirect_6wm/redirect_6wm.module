@@ -1,15 +1,22 @@
 <?php
 function redirect_6wm_boot(){
+  global $user;
+  if($user->uid!=0){
+    return;
+  }
+  
   //Note that when hook_boot is called, drupal goto is not definied, hence we are using the following method instead: heaader("Location: http://www.example.com/");exit; 
   $swm_host = 'www.6wm.org.uk';
   $lq_host = 'www.londonquakers.org.uk';
+  $swm_short_host = '6wm.org.uk';
+  $lq_short_host = 'londonquakers.org.uk';
   $swm_start = '6';
 
   if(
     $_SERVER['HTTP_HOST']!=$swm_host AND
     $_SERVER['HTTP_HOST']!=$lq_host AND
-    $_SERVER['HTTP_HOST']!='6wm.org.uk'// TODO - could change this to ends in 6wm.org.uk, etc. to make it more robust
-    AND $_SERVER['HTTP_HOST']!='londonquakers.org.uk' // TODO - could change this to ends in londonquakers.org.uk, etc. to make it more robust
+    $_SERVER['HTTP_HOST']!=$swm_short_host AND
+    $_SERVER['HTTP_HOST']!=$lq_short_host
   ){ 
     return;
   }
@@ -20,7 +27,7 @@ function redirect_6wm_boot(){
   $uri_parts=explode('/', $uri);
   $uri_start=$uri_parts[1];
   //If we are at '/' on the London Quaker Property Trust home page, we probably want to be redirected to /swm
-  if($uri=="/" AND $host==$swm_host){
+  if($uri=="/" AND ($host==$swm_host OR $host==$swm_short_host)){
     header("Location: http://{$swm_host}/{$swm_start}");
     exit;
   }
