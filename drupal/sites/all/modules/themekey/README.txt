@@ -3,7 +3,7 @@ ThemeKey
 ========
 
 Name: themekey
-Authors: Markus Kalkbrenner | Cocomore AG
+Authors: Markus Kalkbrenner | bio.logis GmbH
          Carsten Müller | Cocomore AG
          Christian Spitzlay | Cocomore AG
          Thilo Wawrzik <drupal at profix898 dot de>

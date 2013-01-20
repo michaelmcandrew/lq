@@ -1,5 +1,8 @@
-// $Id: field_ui.js,v 1.8 2010/11/21 08:50:49 webchick Exp $
-
+/**
+ * @file
+ * Attaches the behaviors for the Field UI module.
+ */
+ 
 (function($) {
 
 Drupal.behaviors.fieldUIFieldOverview = {
@@ -25,7 +28,7 @@ Drupal.fieldUIFieldOverview = {
 
     // 'Field type' select updates its 'Widget' select.
     $('.field-type-select', table).each(function () {
-      this.targetSelect = $('.widget-type-select', $(this).parents('tr').eq(0));
+      this.targetSelect = $('.widget-type-select', $(this).closest('tr'));
 
       $(this).bind('change keyup', function () {
         var selectedFieldType = this.options[this.selectedIndex].value;
@@ -40,8 +43,13 @@ Drupal.fieldUIFieldOverview = {
 
     // 'Existing field' select updates its 'Widget' select and 'Label' textfield.
     $('.field-select', table).each(function () {
-      this.targetSelect = $('.widget-type-select', $(this).parents('tr').eq(0));
-      this.targetTextfield = $('.label-textfield', $(this).parents('tr').eq(0));
+      this.targetSelect = $('.widget-type-select', $(this).closest('tr'));
+      this.targetTextfield = $('.label-textfield', $(this).closest('tr'));
+      this.targetTextfield
+        .data('field_ui_edited', false)
+        .bind('keyup', function (e) {
+          $(this).data('field_ui_edited', $(this).val() != '');
+        });
 
       $(this).bind('change keyup', function (e, updateText) {
         var updateText = (typeof updateText == 'undefined' ? true : updateText);
@@ -51,8 +59,10 @@ Drupal.fieldUIFieldOverview = {
         var options = (selectedFieldType && (selectedFieldType in widgetTypes) ? widgetTypes[selectedFieldType] : []);
         this.targetSelect.fieldUIPopulateOptions(options, selectedFieldWidget);
 
-        if (updateText) {
-          $(this.targetTextfield).attr('value', (selectedField in fields ? fields[selectedField].label : ''));
+        // Only overwrite the "Label" input if it has not been manually
+        // changed, or if it is empty.
+        if (updateText && !this.targetTextfield.data('field_ui_edited')) {
+          this.targetTextfield.val(selectedField in fields ? fields[selectedField].label : '');
         }
       });
 
@@ -87,7 +97,7 @@ jQuery.fn.fieldUIPopulateOptions = function (options, selected) {
       html += '<option value="' + value + '"' + (is_selected ? ' selected="selected"' : '') + '>' + text + '</option>';
     });
 
-    $(this).html(html).attr('disabled', disabled ? 'disabled' : '');
+    $(this).html(html).attr('disabled', disabled ? 'disabled' : false);
   });
 };
 
@@ -119,7 +129,7 @@ Drupal.fieldUIOverview = {
         data.tableDrag = tableDrag;
 
         // Create the row handler, make it accessible from the DOM row element.
-        var rowHandler = eval('new rowHandlers.' + data.rowHandler + '(row, data);');
+        var rowHandler = new rowHandlers[data.rowHandler](row, data);
         $(row).data('fieldUIRowHandler', rowHandler);
       }
     });
@@ -130,7 +140,7 @@ Drupal.fieldUIOverview = {
    */
   onChange: function () {
     var $trigger = $(this);
-    var row = $trigger.parents('tr:first').get(0);
+    var row = $trigger.closest('tr').get(0);
     var rowHandler = $(row).data('fieldUIRowHandler');
 
     var refreshRows = {};
@@ -167,7 +177,7 @@ Drupal.fieldUIOverview = {
         refreshRows = rowHandler.regionChange(region);
         // Update the row region.
         rowHandler.region = region;
-        // AJAX-update the rows.
+        // Ajax-update the rows.
         Drupal.fieldUIOverview.AJAXRefreshRows(refreshRows);
       }
     }
@@ -206,7 +216,7 @@ Drupal.fieldUIOverview = {
   },
 
   /**
-   * Triggers AJAX refresh of selected rows.
+   * Triggers Ajax refresh of selected rows.
    *
    * The 'format type' selects can trigger a series of changes in child rows.
    * The #ajax behavior is therefore not attached directly to the selects, but
@@ -215,7 +225,7 @@ Drupal.fieldUIOverview = {
    * @param rows
    *   A hash object, whose keys are the names of the rows to refresh (they
    *   will receive the 'ajax-new-content' effect on the server side), and
-   *   whose values are the DOM element in the row that should get an AJAX
+   *   whose values are the DOM element in the row that should get an Ajax
    *   throbber.
    */
   AJAXRefreshRows: function (rows) {
@@ -234,7 +244,7 @@ Drupal.fieldUIOverview = {
         .addClass('progress-disabled')
         .after($throbber);
 
-      // Fire the AJAX update.
+      // Fire the Ajax update.
       $('input[name=refresh_rows]').val(rowNames.join(' '));
       $('input#edit-refresh').mousedown();
 
@@ -295,7 +305,7 @@ Drupal.fieldUIDisplayOverview.field.prototype = {
    * @param region
    *   The name of the new region for the row.
    * @return
-   *   A hash object indicating which rows should be AJAX-updated as a result
+   *   A hash object indicating which rows should be Ajax-updated as a result
    *   of the change, in the format expected by
    *   Drupal.displayOverview.AJAXRefreshRows().
    */

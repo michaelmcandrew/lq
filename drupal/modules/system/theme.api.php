@@ -1,5 +1,4 @@
 <?php
-// $Id: theme.api.php,v 1.5 2011/01/03 18:03:54 webchick Exp $
 
 /**
  * @defgroup themeable Default theme implementations
@@ -71,8 +70,8 @@
  * Allow themes to alter the theme-specific settings form.
  *
  * With this hook, themes can alter the theme-specific settings form in any way
- * allowable by Drupal's Forms API, such as adding form elements, changing
- * default values and removing form elements. See the Forms API documentation on
+ * allowable by Drupal's Form API, such as adding form elements, changing
+ * default values and removing form elements. See the Form API documentation on
  * api.drupal.org for detailed information.
  *
  * Note that the base theme's form alterations will be run before any sub-theme
@@ -94,11 +93,15 @@ function hook_form_system_theme_settings_alter(&$form, &$form_state) {
 }
 
 /**
- * Preprocess theme variables.
+ * Preprocess theme variables for templates.
  *
  * This hook allows modules to preprocess theme variables for theme templates.
- * It is called for all invocations of theme(), to allow modules to add to
- * or override variables for all theme hooks.
+ * It is called for all theme hooks implemented as templates, but not for theme
+ * hooks implemented as functions. hook_preprocess_HOOK() can be used to
+ * preprocess variables for a specific theme hook, whether implemented as a
+ * template or function.
+ *
+ * For more detailed information, see theme().
  *
  * @param $variables
  *   The variables array (modify in place).
@@ -146,6 +149,8 @@ function hook_preprocess(&$variables, $hook) {
  * hook. It should only be used if a module needs to override or add to the
  * theme preprocessing for a theme hook it didn't define.
  *
+ * For more detailed information, see theme().
+ *
  * @param $variables
  *   The variables array (modify in place).
  */
@@ -156,11 +161,15 @@ function hook_preprocess_HOOK(&$variables) {
 }
 
 /**
- * Process theme variables.
+ * Process theme variables for templates.
  *
- * This hook allows modules to process theme variables for theme templates.
- * It is called for all invocations of theme(), to allow modules to add to
- * or override variables for all theme hooks.
+ * This hook allows modules to process theme variables for theme templates. It
+ * is called for all theme hooks implemented as templates, but not for theme
+ * hooks implemented as functions. hook_process_HOOK() can be used to process
+ * variables for a specific theme hook, whether implemented as a template or
+ * function.
+ *
+ * For more detailed information, see theme().
  *
  * @param $variables
  *   The variables array (modify in place).
@@ -188,11 +197,17 @@ function hook_process(&$variables, $hook) {
  * hook. It should only be used if a module needs to override or add to the
  * theme processing for a theme hook it didn't define.
  *
+ * For more detailed information, see theme().
+ *
  * @param $variables
  *   The variables array (modify in place).
  */
 function hook_process_HOOK(&$variables) {
-  $variables['classes'] .= ' my_added_class';
+  // @todo There are no use-cases in Drupal core for this hook. Find one from a
+  //   contributed module, or come up with a good example. Coming up with a good
+  //   example might be tough, since the intent is for nearly everything to be
+  //   achievable via preprocess functions, and for process functions to only be
+  //   used when requiring the later execution time.
 }
 
 /**

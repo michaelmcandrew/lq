@@ -15,7 +15,7 @@
  *
  * @see themekey.module
  *
- * @author Markus Kalkbrenner | Cocomore AG
+ * @author Markus Kalkbrenner | bio.logis GmbH
  *   @see http://drupal.org/user/124705
  *
  * @author profix898
@@ -247,8 +247,15 @@ function themekey_ui_form_alter(&$form, $form_state, $form_id) {
       if ($form_id == $type . '_node_form' && variable_get('themekey_ui_nodeform|' . $type, 1)) {
         module_load_include('inc', 'themekey_ui', 'themekey_ui_admin');
         $description = t('Theme configuration for this node');
-        if (module_exists('og') && !og_is_omitted_type($type)) {
-          $description .= '<p><b>' . t('Note:') . '</b> ' . t('This content type is used in Organic Groups. A theme you select here will only be used to display this node if you set the theme for the Organic Group to %theme', array('%theme' => variable_get('theme_default', 'bartik') . ' ' . t('(site default theme)'))) . '</p>';
+        if (module_exists('og') && variable_get('og_group_type_' . $type, 'omitted') != 'omitted') {
+          $description .= '<p><b>' . t('Note:') . '</b> ' .
+            t('This content type is used in Organic Groups. By default, the theme you select here will only be used to display this node if you set the theme for the Organic Group to %theme',
+              array('%theme' => variable_get('theme_default', 'bartik') .
+            ' ' . t('(site default theme)'))) . '</p>';
+          $description .= '<p>' .
+            t('This default behaviour could be modified using the !themekey_compat_link module.',
+              array('!themekey_compat_link' => l('ThemeKey Compatibilty', module_exists('themekey_compat') ? 'admin/config/user-interface/themekey/settings/compat' : 'admin/modules'))) .
+            '</p>';
         }
         themekey_ui_theme_select_form($form, t('Theme configuration for this node'), $description, !empty($form['#node']->themekey_ui_theme) ? $form['#node']->themekey_ui_theme : 'default');
       }
@@ -318,12 +325,12 @@ function themekey_ui_node_update($node) {
 
   if (!empty($node->themekey_ui_theme)) {
 
-    if (!$node->revision && 0 < db_select('themekey_ui_node_theme', 't')
-                                ->fields('t')
-                                ->condition('nid', $node->nid)
-                                ->condition('vid', $node->vid)
-                                ->execute()
-                                ->rowCount()
+    if (!(isset($node->revision) && $node->revision) && 0 < db_select('themekey_ui_node_theme', 't')
+                                                            ->fields('t')
+                                                            ->condition('nid', $node->nid)
+                                                            ->condition('vid', $node->vid)
+                                                            ->execute()
+                                                            ->rowCount()
     ) {
 
       // UPDATE

@@ -1,6 +1,14 @@
 <?php
+
 /**
- * Field handler to allow linking to a user account or homepage
+ * @file
+ * Definition of views_handler_field_comment_username.
+ */
+
+/**
+ * Field handler to allow linking to a user account or homepage.
+ *
+ * @ingroup views_field_handlers
  */
 class views_handler_field_comment_username extends views_handler_field {
   /**
@@ -14,7 +22,7 @@ class views_handler_field_comment_username extends views_handler_field {
 
   function option_definition() {
     $options = parent::option_definition();
-    $options['link_to_user'] = array('default' => TRUE);
+    $options['link_to_user'] = array('default' => TRUE, 'bool' => TRUE);
     return $options;
   }
 
@@ -29,6 +37,7 @@ class views_handler_field_comment_username extends views_handler_field {
 
   function render_link($data, $values) {
     if (!empty($this->options['link_to_user'])) {
+      $account = new stdClass();
       $account->uid = $this->get_value($values, 'uid');
       $account->name = $this->get_value($values);
       $account->homepage = $this->get_value($values, 'homepage');

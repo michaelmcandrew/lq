@@ -5,7 +5,7 @@
  * Integration of different theme switching modules into ThemeKey and it's theme switching rule chain.
  * @see themekey.module
  *
- * @author Markus Kalkbrenner | Cocomore AG
+ * @author Markus Kalkbrenner | bio.logis GmbH
  *   @see http://drupal.org/user/124705
  */
 

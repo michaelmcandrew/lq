@@ -1,5 +1,4 @@
 <?php
-// $Id: region.tpl.php,v 1.3 2010/09/23 17:53:09 dries Exp $
 
 /**
  * @file
@@ -25,6 +24,8 @@
  * @see template_preprocess()
  * @see template_preprocess_region()
  * @see template_process()
+ *
+ * @ingroup themeable
  */
 ?>
 <?php if ($content): ?>

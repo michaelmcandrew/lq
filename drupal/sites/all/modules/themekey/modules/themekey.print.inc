@@ -4,7 +4,7 @@
  * @file
  * Integrates Print module's paths into ThemeKey.
  *
- * @author Markus Kalkbrenner | Cocomore AG
+ * @author Markus Kalkbrenner | bio.logis GmbH
  *   @see http://drupal.org/user/124705
  */
 

@@ -1,4 +1,3 @@
-// $Id: fckeditor-2.6.js,v 1.22 2010/11/13 18:53:15 sun Exp $
 (function($) {
 
 /**
@@ -22,7 +21,7 @@ Drupal.wysiwyg.editor.attach.fckeditor = function(context, params, settings) {
 /**
  * Detach a single or all editors.
  */
-Drupal.wysiwyg.editor.detach.fckeditor = function(context, params) {
+Drupal.wysiwyg.editor.detach.fckeditor = function (context, params, trigger) {
   var instances = [];
   if (typeof params != 'undefined' && typeof FCKeditorAPI != 'undefined') {
     var instance = FCKeditorAPI.GetInstance(params.field);
@@ -37,6 +36,11 @@ Drupal.wysiwyg.editor.detach.fckeditor = function(context, params) {
   for (var instanceName in instances) {
     var instance = instances[instanceName];
     instance.UpdateLinkedField();
+    if (trigger == 'serialize') {
+      // The editor is not being removed from the DOM, so updating the linked
+      // field is the only action necessary.
+      continue;
+    }
     // Since we already detach the editor and update the textarea, the submit
     // event handler needs to be removed to prevent data loss (in IE).
     // FCKeditor uses 2 nested iFrames; instance.EditingArea.Window is the
@@ -176,6 +180,16 @@ Drupal.wysiwyg.editor.instance.fckeditor = {
     var instance = FCKeditorAPI.GetInstance(this.field);
     // @see FCK.InsertHtml(), FCK.InsertElement()
     instance.InsertHtml(content);
+  },
+
+  getContent: function () {
+    var instance = FCKeditorAPI.GetInstance(this.field);
+    return instance.GetData();
+  },
+
+  setContent: function (content) {
+    var instance = FCKeditorAPI.GetInstance(this.field);
+    instance.SetHTML(content);
   }
 };
 

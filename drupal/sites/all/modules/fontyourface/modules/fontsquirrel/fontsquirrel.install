@@ -10,9 +10,15 @@
  */
 function fontsquirrel_enable() {
 
-  // Weight must be above @font-your-face weight so preprocess comes after
+  // Set weight to 1 to ensure fontsquirrel_preprocess_html() is executed after
+  // fontyourface_preprocess_html(), which has weight of 0.
+  db_update('system')
+    ->fields(array('weight' => 1))
+    ->condition('name', 'fontsquirrel')
+    ->execute();
 
-  db_query("UPDATE {system} SET weight = 1 WHERE name = 'fontsquirrel'");
+  // Import/update fonts
+  fontyourface_import_fonts('fontsquirrel');
 
 } // fontsquirrel_enable
 

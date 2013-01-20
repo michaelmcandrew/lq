@@ -1,18 +1,14 @@
 <?php
+
 /**
  * @file
  * Provide basic views data for filter.module.
- */
-
-/**
- * @defgroup views_filter_module filter.module handlers
  *
- * Only includes the table 'filter_formats'.
- * @{
+ * @ingroup views_module_handlers
  */
 
 /**
- * Implements hook_views_data()
+ * Implements hook_views_data().
  */
 function filter_views_data() {
   // ----------------------------------------------------------------------
@@ -22,12 +18,12 @@ function filter_views_data() {
   // no fields are defined here yet.
   $data['filter_formats']['moved to'] = 'filter_format';
   $data['filter_format']['table']['join'] = array(
-    'node_revisions' => array(
+    'node_revision' => array(
       'left_field' => 'format',
       'field' => 'format',
     ),
     'node' => array(
-      'left_table' => 'node_revisions',
+      'left_table' => 'node_revision',
       'left_field' => 'format',
       'field' => 'format',
     ),
@@ -35,7 +31,3 @@ function filter_views_data() {
 
   return $data;
 }
-
-/**
- * @}
- */

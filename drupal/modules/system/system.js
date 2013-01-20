@@ -1,4 +1,3 @@
-// $Id: system.js,v 1.41 2010/10/13 13:43:21 dries Exp $
 (function ($) {
 
 /**
@@ -97,35 +96,25 @@ Drupal.behaviors.copyFieldValue = {
  */
 Drupal.behaviors.dateTime = {
   attach: function (context, settings) {
-    for (var value in settings.dateTime) {
-      var settings = settings.dateTime[value];
-      var source = '#edit-' + value;
-      var suffix = source + '-suffix';
+    for (var fieldName in settings.dateTime) {
+      if (settings.dateTime.hasOwnProperty(fieldName)) {
+        (function (fieldSettings, fieldName) {
+          var source = '#edit-' + fieldName;
+          var suffix = source + '-suffix';
 
-      // Attach keyup handler to custom format inputs.
-      $('input' + source, context).once('date-time').keyup(function () {
-        var input = $(this);
-        var url = settings.lookup + (settings.lookup.match(/\?q=/) ? '&format=' : '?format=') + encodeURIComponent(input.val());
-        $.getJSON(url, function (data) {
-          $(suffix).empty().append(' ' + settings.text + ': <em>' + data + '</em>');
-        });
-      });
+          // Attach keyup handler to custom format inputs.
+          $('input' + source, context).once('date-time').keyup(function () {
+            var input = $(this);
+            var url = fieldSettings.lookup + (/\?q=/.test(fieldSettings.lookup) ? '&format=' : '?format=') + encodeURIComponent(input.val());
+            $.getJSON(url, function (data) {
+              $(suffix).empty().append(' ' + fieldSettings.text + ': <em>' + data + '</em>');
+            });
+          });
+        })(settings.dateTime[fieldName], fieldName);
+      }
     }
   }
 };
-
-/**
- * Show the powered by Drupal image preview
- */
-Drupal.behaviors.poweredByPreview = {
-  attach: function (context, settings) {
-    $('#edit-color, #edit-size').change(function () {
-      var path = settings.basePath + 'misc/' + $('#edit-color').val() + '-' + $('#edit-size').val() + '.png';
-      $('img.powered-by-preview').attr('src', path);
-    });
-  }
-};
-
 
  /**
  * Show/hide settings for page caching depending on whether page caching is

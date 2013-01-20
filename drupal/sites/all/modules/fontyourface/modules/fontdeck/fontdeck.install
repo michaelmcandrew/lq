@@ -10,9 +10,12 @@
  */
 function fontdeck_enable() {
 
-  // Weight must be above @font-your-face weight so preprocess comes after
-
-  db_query("UPDATE {system} SET weight = 1 WHERE name = 'fontdeck'");
+  // Set weight to 1 to ensure fontdeck_preprocess_html() is executed after
+  // fontyourface_preprocess_html(), which has weight of 0.
+  db_update('system')
+    ->fields(array('weight' => 1))
+    ->condition('name', 'fontdeck')
+    ->execute();
 
 } // fontdeck_enable
 
@@ -22,7 +25,15 @@ function fontdeck_enable() {
 function fontdeck_disable() {
 
   fontyourface_provider_disable('fontdeck');
+
+} // fontdeck_disable
+
+/**
+ * Implements hook_uninstall().
+ */
+function fontdeck_uninstall() {
+
   variable_del('fontdeck_project');
   variable_del('fontdeck_css');
 
-} // fontdeck_disable
+} // fontdeck_uninstall

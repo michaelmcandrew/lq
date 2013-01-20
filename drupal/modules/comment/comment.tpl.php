@@ -1,5 +1,4 @@
 <?php
-// $Id: comment.tpl.php,v 1.19 2010/12/01 00:18:15 webchick Exp $
 
 /**
  * @file
@@ -56,6 +55,8 @@
  * @see template_preprocess_comment()
  * @see template_process()
  * @see theme_comment()
+ *
+ * @ingroup themeable
  */
 ?>
 <div class="<?php print $classes; ?> clearfix"<?php print $attributes; ?>>

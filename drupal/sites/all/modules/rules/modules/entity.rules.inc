@@ -174,27 +174,6 @@ function rules_action_entity_createfetch_access(RulesAbstractPlugin $element) {
 }
 
 /**
- * Custom validate callback for data fetch action.
- */
-function rules_action_entity_fetch_validate($element) {
-  if (!isset($element->settings['type'])) {
-    throw new RulesEvaluationException('Invalid type specified.', array(), array($element, 'parameter', 'type'));
-  }
-}
-
-/**
- * Custom validate callback for data query action.
- */
-function rules_action_entity_query_validate($element) {
-  if (!isset($element->settings['type'])) {
-    throw new RulesEvaluationException('Invalid type specified.', array(), array($element, 'parameter', 'type'));
-  }
-  if (!isset($element->settings['property'])) {
-    throw new RulesEvaluationException('Invalid property specified.', array(), array($element, 'parameter', 'property'));
-  }
-}
-
-/**
  * Custom access callback for the data query action.
  */
 function rules_action_entity_query_access(RulesAbstractPlugin $element) {
@@ -242,7 +221,7 @@ function rules_action_entity_query_property_options_list(RulesAbstractPlugin $el
 }
 
 /**
- * Returns the options list specified for the choosen property.
+ * Returns the options list specified for the chosen property.
  */
 function rules_action_entity_query_value_options_list(RulesAbstractPlugin $element) {
   // Get the possible values for the selected property.

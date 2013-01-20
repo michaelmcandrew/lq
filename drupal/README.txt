@@ -1,10 +1,10 @@
-// $Id: README.txt,v 1.1 2010/12/02 00:20:18 webchick Exp $
 
 CONTENTS OF THIS FILE
 ---------------------
 
  * About Drupal
  * Configuration and features
+ * Installation profiles
  * Appearance
  * Developing for Drupal
 
@@ -25,14 +25,14 @@ Legal information about Drupal:
 CONFIGURATION AND FEATURES
 --------------------------
 
-Drupal core (what you get when you download and unzip a drupal-x.y.tar.gz file
-from http://drupal.org/project/drupal) has what you need to get started with
-your website. It includes several modules (extensions that add functionality)
-for common website features, such as managing content, user accounts, image
-uploading, and search. Core comes with many options that allow site-specific
-configuration. In addition to the core modules, there are thousands of
-contributed modules (for functionality not included with Drupal core)
-available for download.
+Drupal core (what you get when you download and extract a drupal-x.y.tar.gz or
+drupal-x.y.zip file from http://drupal.org/project/drupal) has what you need to
+get started with your website. It includes several modules (extensions that add
+functionality) for common website features, such as managing content, user
+accounts, image uploading, and search. Core comes with many options that allow
+site-specific configuration. In addition to the core modules, there are
+thousands of contributed modules (for functionality not included with Drupal
+core) available for download.
 
 More about configuration:
  * Install, upgrade, and maintain Drupal:
@@ -44,13 +44,47 @@ More about configuration:
    http://drupal.org/project/modules
  * See also: "Developing for Drupal" for writing your own modules, below.
 
+INSTALLATION PROFILES
+---------------------
+
+Installation profiles define additional steps (such as enabling modules,
+defining content types, etc.) that run after the base installation provided
+by core when Drupal is first installed. There are two basic installation
+profiles provided with Drupal core.
+
+Installation profiles from the Drupal community modify the installation process
+to provide a website for a specific use case, such as a CMS for media
+publishers, a web-based project tracking tool, or a full-fledged CRM for
+non-profit organizations raising money and accepting donations. They can be
+distributed as bare installation profiles or as "distributions". Distributions
+include Drupal core, the installation profile, and all other required
+extensions, such as contributed and custom modules, themes, and third-party
+libraries. Bare installation profiles require you to download Drupal Core and
+the required extensions separately; place the downloaded profile in the
+/profiles directory before you start the installation process. Note that the
+contents of this directory may be overwritten during updates of Drupal core;
+it is advised to keep code backups or use a version control system.
+
+Additionally, modules and themes may be placed inside subdirectories in a
+specific installation profile such as profiles/your_site_profile/modules and
+profiles/your_site_profile/themes respectively to restrict their usage to only
+sites that were installed with that specific profile.
+
+More about installation profiles and distributions:
+* Read about the difference between installation profiles and distributions:
+  http://drupal.org/node/1089736
+* Download contributed installation profiles and distributions:
+  http://drupal.org/project/distributions
+* Develop your own installation profile or distribution:
+  http://drupal.org/developing/distributions
+
 APPEARANCE
 ----------
 
 In Drupal, the appearance of your site is set by the theme (themes are
 extensions that set fonts, colors, and layout). Drupal core comes with several
-themes. More themes are available for download, and you can also create your
-own custom theme.
+themes. More themes are available for download, and you can also create your own
+custom theme.
 
 More about themes:
  * Download contributed themes to sites/all/themes to modify Drupal's

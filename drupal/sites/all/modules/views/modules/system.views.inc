@@ -1,19 +1,14 @@
 <?php
+
 /**
  * @file
+ * Provide views data and handlers for system.module.
  *
- * Provide views data and handlers for system tables that are not represented by
- * their own module.
+ * @ingroup views_module_handlers
  */
 
 /**
- * @defgroup views_system_module system.module handlers
- *
- * @{
- */
-
-/**
- * Implements hook_views_data()
+ * Implements hook_views_data().
  */
 function system_views_data() {
   $data = array();
@@ -33,19 +28,7 @@ function system_views_data() {
       'field' => 'filename'
     ),
   );
-
-  // The file table does not inherently join to the node table,
-  // but may things (such as upload.module) can add relationships
-  // that allow file fields to be used.
-
-  // For other base tables, explain how we join
-  $data['file_managed']['table']['join'] = array(
-    'users' => array(
-      // direct join to the users table via 'uid' field.
-      'left_field' => 'uid',
-      'field' => 'uid',
-     ),
-  );
+  $data['file_managed']['table']['entity type'] = 'file';
 
   // fid
   $data['file_managed']['fid'] = array(
@@ -58,6 +41,7 @@ function system_views_data() {
     'argument' => array(
       'handler' => 'views_handler_argument_file_fid',
       'name field' => 'filename', // the field to display in the summary.
+      'numeric' => TRUE,
     ),
     'filter' => array(
       'handler' => 'views_handler_filter_numeric',
@@ -125,7 +109,7 @@ function system_views_data() {
   );
 
   // extension
-  $data['files']['extension'] = array(
+  $data['file_managed']['extension'] = array(
     'title' => t('Extension'),
     'help' => t('The extension of the file.'),
     'real field' => 'filename',
@@ -180,6 +164,18 @@ function system_views_data() {
     ),
     'filter' => array(
       'handler' => 'views_handler_filter_date',
+    ),
+  );
+
+  // uid
+  $data['file_managed']['uid'] = array(
+    'title' => t('User who uploaded'),
+    'help' => t('The user that uploaded the file.'),
+    'relationship' => array(
+      'title' => t('User who uploaded'),
+      'label' => t('User who uploaded'),
+      'base' => 'users',
+      'base field' => 'uid',
     ),
   );
 
@@ -425,6 +421,23 @@ function system_views_data() {
       'handler' => 'views_handler_sort',
     ),
   );
+  $data['file_usage']['id'] = array(
+    'title' => t('Entity ID'),
+    'help' => t('The ID of the entity that is related to the file.'),
+    'field' => array(
+      'handler' => 'views_handler_field_numeric',
+      'click sortable' => TRUE,
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_numeric',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_numeric',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+  );
   $data['file_usage']['count'] = array(
     'title' => t('Use count'),
     'help' => t('The number of times the file is used by this entity.'),
@@ -563,20 +576,3 @@ function _views_file_status($choice = NULL) {
 
   return $status;
 }
-
-  // uid field
-  $data['files']['uid'] = array(
-    'title' => t('User'),
-    'help' => t('The user, who uploaded the file.'),
-    'relationship' => array(
-      'base' => 'users',
-      'base field' => 'uid',
-      'handler' => 'views_handler_relationship',
-      'label' => t('User'),
-    ),
-  );
-
-
-/**
- * @}
- */

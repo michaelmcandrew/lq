@@ -12,8 +12,8 @@ function gmap_taxonomy_views_data() {
   $data['gmap_taxonomy_node']['table']['group'] = t('Node');
   $data['gmap_taxonomy_node']['table']['join'] = array(
     'node' => array(
-      'left_field' => 'vid',
-      'field' => 'vid',
+      'left_field' => 'nid',
+      'field' => 'nid',
     ),
     // @@@ Node_revisions?
   );

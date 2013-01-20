@@ -1,5 +1,4 @@
 <?php
-// $Id: poll-vote.tpl.php,v 1.4 2009/06/13 19:38:42 dries Exp $
 
 /**
  * @file
@@ -13,6 +12,8 @@
  *   form_alter hooks.
  *
  * @see template_preprocess_poll_vote()
+ *
+ * @ingroup themeable
  */
 ?>
 <div class="poll">

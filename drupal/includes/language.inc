@@ -1,5 +1,4 @@
 <?php
-// $Id: language.inc,v 1.30 2010/05/12 08:26:14 dries Exp $
 
 /**
  * @file
@@ -85,6 +84,44 @@ function language_types_disable($types) {
 }
 
 /**
+ * Updates the language type configuration.
+ */
+function language_types_set() {
+  // Ensure that we are getting the defined language negotiation information. An
+  // invocation of module_enable() or module_disable() could outdate the cached
+  // information.
+  drupal_static_reset('language_types_info');
+  drupal_static_reset('language_negotiation_info');
+
+  // Determine which language types are configurable and which not by checking
+  // whether the 'fixed' key is defined. Non-configurable (fixed) language types
+  // have their language negotiation settings stored there.
+  $defined_providers = language_negotiation_info();
+  foreach (language_types_info() as $type => $info) {
+    if (isset($info['fixed'])) {
+      $language_types[$type] = FALSE;
+      $negotiation = array();
+      foreach ($info['fixed'] as $weight => $id) {
+        if (isset($defined_providers[$id])) {
+          $negotiation[$id] = $weight;
+        }
+      }
+      language_negotiation_set($type, $negotiation);
+    }
+    else {
+      $language_types[$type] = TRUE;
+    }
+  }
+
+  // Save language types.
+  variable_set('language_types', $language_types);
+
+  // Ensure that subsequent calls of language_types_configurable() return the
+  // updated language type information.
+  drupal_static_reset('language_types_configurable');
+}
+
+/**
  * Check if a language provider is enabled.
  *
  * This has two possible behaviors:
@@ -153,6 +190,11 @@ function language_negotiation_get_switch_links($type, $path) {
   $links = FALSE;
   $negotiation = variable_get("language_negotiation_$type", array());
 
+  // Only get the languages if we have more than one.
+  if (count(language_list()) >= 2) {
+    $language = language_initialize($type);
+  }
+
   foreach ($negotiation as $id => $provider) {
     if (isset($provider['callbacks']['switcher'])) {
       if (isset($provider['file'])) {
@@ -161,6 +203,12 @@ function language_negotiation_get_switch_links($type, $path) {
 
       $callback = $provider['callbacks']['switcher'];
       $result = $callback($type, $path);
+
+      // Add support for WCAG 2.0's Language of Parts to add language identifiers.
+      // http://www.w3.org/TR/UNDERSTANDING-WCAG20/meaning-other-lang-id.html
+      foreach ($result as $langcode => $link) {
+        $result[$langcode]['attributes']['lang'] = $langcode;
+      }
 
       if (!empty($result)) {
         // Allow modules to provide translations for specific links.
@@ -174,6 +222,28 @@ function language_negotiation_get_switch_links($type, $path) {
   return $links;
 }
 
+/**
+ * Updates language configuration to remove any language provider that is no longer defined.
+ */
+function language_negotiation_purge() {
+  // Ensure that we are getting the defined language negotiation information. An
+  // invocation of module_enable() or module_disable() could outdate the cached
+  // information.
+  drupal_static_reset('language_negotiation_info');
+  drupal_static_reset('language_types_info');
+
+  $defined_providers = language_negotiation_info();
+  foreach (language_types_info() as $type => $type_info) {
+    $weight = 0;
+    $negotiation = array();
+    foreach (variable_get("language_negotiation_$type", array()) as $id => $provider) {
+      if (isset($defined_providers[$id])) {
+        $negotiation[$id] = $weight++;
+      }
+    }
+    language_negotiation_set($type, $negotiation);
+  }
+}
 
 /**
  * Save a list of language providers.
@@ -181,7 +251,8 @@ function language_negotiation_get_switch_links($type, $path) {
  * @param $type
  *   The language negotiation type.
  * @param $language_providers
- *   An array of language provider ids.
+ *   An array of language provider weights keyed by id.
+ *   @see language_provider_weight()
  */
 function language_negotiation_set($type, $language_providers) {
   // Save only the necessary fields.
@@ -190,7 +261,7 @@ function language_negotiation_set($type, $language_providers) {
   $negotiation = array();
   $providers_weight = array();
   $defined_providers = language_negotiation_info();
-  $default_types = language_types_configurable();
+  $default_types = language_types_configurable(FALSE);
 
   // Initialize the providers weight list.
   foreach ($language_providers as $id => $provider) {
@@ -289,7 +360,10 @@ function language_provider_invoke($provider_id, $provider = NULL) {
     $results[$provider_id] = isset($languages[$langcode]) ? $languages[$langcode] : FALSE;
   }
 
-  return $results[$provider_id];
+  // Since objects are resources we need to return a clone to prevent the
+  // provider cache to be unintentionally altered. The same providers might be
+  // used with different language types based on configuration.
+  return !empty($results[$provider_id]) ? clone($results[$provider_id]) : $results[$provider_id];
 }
 
 /**
@@ -320,15 +394,18 @@ function language_initialize($type) {
   // first valid language found.
   $negotiation = variable_get("language_negotiation_$type", array());
 
-  foreach ($negotiation as $id => $provider) {
-    $language = language_provider_invoke($id, $provider);
+  foreach ($negotiation as $provider_id => $provider) {
+    $language = language_provider_invoke($provider_id, $provider);
     if ($language) {
+      $language->provider = $provider_id;
       return $language;
     }
   }
 
   // If no other language was found use the default one.
-  return language_default();
+  $language = language_default();
+  $language->provider = LANGUAGE_NEGOTIATION_DEFAULT;
+  return $language;
 }
 
 /**
@@ -342,7 +419,7 @@ function language_from_default() {
 }
 
 /**
- * Split the given path into prefix and actual path.
+ * Splits the given path into prefix and actual path.
  *
  * Parse the given path and return the language object identified by the
  * prefix and the actual path.
@@ -374,10 +451,10 @@ function language_url_split_prefix($path, $languages) {
 }
 
 /**
- * Return the possible fallback languages ordered by language weight.
+ * Returns the possible fallback languages ordered by language weight.
  *
  * @param
- *   The language type.
+ *   (optional) The language type. Defaults to LANGUAGE_TYPE_CONTENT.
  *
  * @return
  *   An array of language codes.

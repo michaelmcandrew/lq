@@ -109,8 +109,8 @@ class views_content_plugin_display_ctools_context extends views_plugin_display {
       $admin_title = t('Use view name');
     }
 
-    if (strlen($admin_title) > 16) {
-      $admin_title = substr($admin_title, 0, 16) . '...';
+    if (drupal_strlen($admin_title) > 16) {
+      $admin_title = drupal_substr($admin_title, 0, 16) . '...';
     }
 
     $options['admin_title'] = array(
@@ -169,6 +169,9 @@ class views_content_plugin_display_ctools_context extends views_plugin_display {
         ctools_include('dependent');
         $form['argument_input']['#tree'] = TRUE;
 
+        $converters = ctools_context_get_all_converters();
+        ksort($converters);
+
         foreach ($argument_input as $id => $argument) {
           $form['argument_input'][$id] = array(
             '#tree' => TRUE,
@@ -193,8 +196,7 @@ class views_content_plugin_display_ctools_context extends views_plugin_display {
             '#title' => t('Required context'),
             '#description' => t('If "From context" is selected, which type of context to use.'),
             '#default_value' => $argument['context'],
-            '#options' => ctools_context_get_all_converters(),
-            '#process' => array('form_process_select', 'ctools_dependent_process'),
+            '#options' => $converters,
             '#dependency' => array($type_id => array('context')),
           );
 
@@ -203,7 +205,6 @@ class views_content_plugin_display_ctools_context extends views_plugin_display {
             '#title' => t('Context is optional'),
             '#description' => t('This context need not be present for the pane to function. If you plan to use this, ensure that the argument handler can handle empty values gracefully.'),
             '#default_value' => $argument['context_optional'],
-            '#process' => array('form_process_checkbox', 'ctools_dependent_process'),
             '#dependency' => array($type_id => array('context')),
           );
         }
@@ -260,6 +261,9 @@ class views_content_plugin_display_ctools_context extends views_plugin_display {
   }
 
   function get_path() {
+    if ($this->get_option('link_display') == 'custom_url' && $override_path = $this->get_option('link_url')) {
+      return $override_path;
+    }
     if ($this->get_option('inherit_panels_path')) {
       return $_GET['q'];
     }

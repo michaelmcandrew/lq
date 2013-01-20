@@ -34,15 +34,64 @@ function rules_test_rules_condition_info() {
   $items['rules_condition_content_is_published'] = $defaults + array(
     'label' => t('Content is published'),
   );
+  $items['rules_test_condition_true'] = array(
+    'label' => t('Test condition returning true'),
+    'group' => t('Rules test'),
+  );
+  $items['rules_test_condition_false'] = array(
+    'label' => t('Test condition returning false'),
+    'group' => t('Rules test'),
+  );
+  // A condition for testing passing entities wrapped.
+  $items['rules_test_condition_node_wrapped'] = array(
+    'label' => t('Content is published'),
+    'parameter' => array(
+      'node' => array(
+        'type' => 'node',
+        'label' => t('Content'),
+        'wrapped' => TRUE,
+      ),
+    ),
+    'group' => t('Node'),
+  );
   return $items;
 }
 
+/**
+ * Condition implementation returning true.
+ */
+function rules_test_condition_true($settings, $state, $element) {
+  if (!$element instanceof RulesCondition) {
+    throw new Exception('Rules element has not been passed to condition.');
+  }
+  rules_log('condition true called');
+  return TRUE;
+}
+
+/**
+ * Condition implementation returning false.
+ */
+function rules_test_condition_false() {
+  rules_log('condition false called');
+  return FALSE;
+}
+
+/**
+ * Condition implementation receiving the node wrapped.
+ */
+function rules_test_condition_node_wrapped($wrapper) {
+  return $wrapper instanceof EntityMetadataWrapper;
+}
 
 /**
  * Implements hook_rules_action_info().
  */
 function rules_test_rules_action_info() {
-  return array(
+  $items['rules_test_action'] = array(
+    'label' => t('Test action'),
+    'group' => t('Rules test'),
+  );
+  return $items + array(
     'rules_node_publish_action' => array(
       'label' => t('Publish content, but do not save'),
       'parameter' => array(
@@ -145,6 +194,13 @@ function rules_test_rules_action_info() {
       'group' => t('Node'),
     ),
   );
+}
+
+/**
+ * Test action doing nothing exception logging it has been called.
+ */
+function rules_test_action() {
+  rules_log('action called');
 }
 
 /**

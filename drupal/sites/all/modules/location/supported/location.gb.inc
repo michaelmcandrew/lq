@@ -2,7 +2,7 @@
 
 // Great Britain
 
-function location_province_list_uk() {
+function location_province_list_gb() {
   return array(
     'GSY' => "Guernsey",
     'JSY' => "Jersey",
@@ -239,7 +239,7 @@ function location_province_list_uk() {
   );
 }
 
-function location_map_link_uk_providers() {
+function location_map_link_gb_providers() {
   return array(
     'google' => array(
       'name' => 'Google Maps',
@@ -249,11 +249,11 @@ function location_map_link_uk_providers() {
   );
 }
 
-function location_map_link_uk_default_providers() {
+function location_map_link_gb_default_providers() {
   return array('google');
 }
 
-function location_map_link_uk_google($location = array()) {
+function location_map_link_gb_google($location = array()) {
   $query_params = array();
 
   foreach (array('street', 'city', 'postal_code', 'country') as $field) {
@@ -273,7 +273,7 @@ function location_map_link_uk_google($location = array()) {
 /**
  * Returns minimum and maximum latitude and longitude needed to create a bounding box.
  */
-function location_bounds_uk() {
+function location_bounds_gb() {
   // NaturalEarth 10m Admin 0 - Countries (v1.3.0)
   // EPSG:900913
   // From ISO code GB.

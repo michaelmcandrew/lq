@@ -1,5 +1,4 @@
 <?php
-// $Id: toolbar.tpl.php,v 1.11 2010/05/23 18:23:32 dries Exp $
 
 /**
  * @file
@@ -20,6 +19,8 @@
  *
  * @see template_preprocess()
  * @see template_preprocess_toolbar()
+ *
+ * @ingroup themeable
  */
 ?>
 <div id="toolbar" class="<?php print $classes; ?> clearfix">

@@ -1,4 +1,7 @@
-/* $Id: update.css,v 1.8 2010/10/08 00:24:09 dries Exp $ */
+/**
+ * @file
+ * Styles used by the Update Manager module.
+ */
 
 .update .project {
   font-weight: bold;

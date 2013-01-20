@@ -4,7 +4,7 @@
  * @file
  * Contains all form manipulations to required by ThemeKey.
  *
- * @author Markus Kalkbrenner | Cocomore AG
+ * @author Markus Kalkbrenner | bio.logis GmbH
  *   @see http://drupal.org/user/124705
  *
  * @author profix898
@@ -42,11 +42,14 @@ function themekey_rule_chain_form($form, &$form_state) {
   $operators = array(
     '=' => '=',
     '!' => '!',
+    '*' => '*',
+    '!*' => '!*',
     '<' => '<',
     '<=' => '<=',
     '>' => '>',
     '>=' => '>=',
     '~' => '~',
+    '!~' => '!~',
   );
 
   $form = array('#tree' => TRUE);
@@ -182,6 +185,11 @@ function themekey_rule_chain_form($form, &$form_state) {
     $form['old_items'][$item['id']]['delete'] = array(
       '#markup' => $static ? '' : l(t('delete'), 'admin/config/user-interface/themekey/properties/delete/' . $item['id']),
     );
+    
+    $form['old_items'][$item['id']]['module'] = array(
+      '#type' => 'hidden',
+      '#default_value' => $item['module'],
+    );
   }
 
   $form['new_item']['property'] = array(
@@ -238,106 +246,120 @@ function themekey_rule_chain_form_validate(&$form, $form_state) {
 
   if (!empty($values['old_items'])) {
     foreach ($values['old_items'] as $key_1 => $value_1) {
-      if ($value_1['enabled'] && !themekey_check_theme_enabled($value_1['theme'])) {
-        form_set_error('old_items][' . $key_1 . '][theme', check_plain(t('Theme is not activated')));
-      }
-
-      if (empty($value_1['property'])) {
-        form_set_error('old_items][' . $key_1 . '][property', check_plain(t('Property missing')));
-      }
-      else {
-        if (0 == drupal_strlen($value_1['value'])) {
-          form_set_error('old_items][' . $key_1 . '][value', check_plain(t('You must enter a value')));
+      if ($value_1['enabled']) {
+        if (!themekey_check_theme_enabled($value_1['theme'])) {
+          form_set_error('old_items][' . $key_1 . '][theme', check_plain(t('Theme is not activated')));
         }
-        elseif (!empty($attributes[$value_1['property']]['validator'])) {
-          //validate rule with custom validator
-          $validator = $attributes[$value_1['property']]['validator'];
 
-          if (!function_exists($validator) && isset($attributes[$value_1['property']]['file'])) {
-            themekey_load_function(
-              $validator,
-              $attributes[$value_1['property']]['file'],
-              isset($attributes[$value_1['property']]['path']) ? $attributes[$value_1['property']]['path'] : '');
+        if (empty($value_1['property'])) {
+          form_set_error('old_items][' . $key_1 . '][property', check_plain(t('Property missing')));
+        }
+        else {
+          if (0 == drupal_strlen($value_1['value'])) {
+            form_set_error('old_items][' . $key_1 . '][value', check_plain(t('You must enter a value')));
           }
+          elseif (!empty($attributes[$value_1['property']]['validator'])) {
+            //validate rule with custom validator
+            $validator = $attributes[$value_1['property']]['validator'];
 
-          if (function_exists($validator)) {
+            if (!function_exists($validator) && isset($attributes[$value_1['property']]['file'])) {
+              themekey_load_function(
+                $validator,
+                $attributes[$value_1['property']]['file'],
+                isset($attributes[$value_1['property']]['path']) ? $attributes[$value_1['property']]['path'] : '');
+            }
+
+            if (function_exists($validator)) {
+              $rule = array(
+                'property' => $value_1['property'],
+                'wildcard' => $value_1['wildcard'],
+                'operator' => $value_1['operator'],
+                'value' => $value_1['value'],
+              );
+              $errors = $validator($rule);
+              foreach ($errors as $element => $msg) {
+                form_set_error('old_items][' . $key_1 . '][' . $element, filter_xss($msg, array('em')));
+              }
+            }
+            else {
+              form_set_error('old_items][' . $key_1 . '][property', filter_xss(t('ThemeKey requested an unknown validator called %validator to validate property %property', array('%validator' => $validator, '%property' => $value_1['property'])), array('em')));
+            }
+          }
+          elseif ('~' == $value_1['operator'] || '!~' == $value_1['operator']) {
             $rule = array(
               'property' => $value_1['property'],
               'wildcard' => $value_1['wildcard'],
               'operator' => $value_1['operator'],
               'value' => $value_1['value'],
             );
-            $errors = $validator($rule);
+            $errors = themekey_validator_regex($rule);
             foreach ($errors as $element => $msg) {
               form_set_error('old_items][' . $key_1 . '][' . $element, filter_xss($msg, array('em')));
             }
           }
-          else {
-            form_set_error('old_items][' . $key_1 . '][property', filter_xss(t('ThemeKey requested an unknown validator called %validator to validate property %property', array('%validator' => $validator, '%property' => $value_1['property'])), array('em')));
+        }
+
+        foreach ($values['old_items'] as $key_2 => $value_2) {
+          if ($key_2 == $key_1) {
+            continue;
           }
-        }
-      }
 
-      foreach ($values['old_items'] as $key_2 => $value_2) {
-        if ($key_2 == $key_1) {
-          continue;
-        }
+          if ($value_2['enabled'] &&
+            !empty($value_1['value']) &&
+            $value_2['property'] == $value_1['property'] &&
+            $value_2['operator'] == $value_1['operator'] &&
+            $value_2['value'] == $value_1['value'] &&
+            ($value_2['parent'] == $value_1['parent'] ||
+            $value_2['parent'] == $value_1['id'])) {
 
-        if ($value_2['enabled'] &&
-          !empty($value_1['value']) &&
-          $value_2['property'] == $value_1['property'] &&
-          $value_2['operator'] == $value_1['operator'] &&
-          $value_2['value'] == $value_1['value'] &&
-          ($value_2['parent'] == $value_1['parent'] ||
-          $value_2['parent'] == $value_1['id'])) {
+            if ('drupal:path:wildcard' != $value_2['property'] ||
+                ('drupal:path:wildcard' == $value_2['property'] && $value_2['wildcard'] == $value_1['wildcard'])) {
+              // We have two identical rules with same 'indention' in a chain.
+              // This is allowed only if first one has childs and second one has none and one isn't the parent of the other
+              if (!$value_2['parent'] == $value_1['id']) {
+                $has_childs_1 = FALSE;
+                $has_childs_2 = FALSE;
 
-          if ('drupal:path:wildcard' != $value_2['property'] ||
-              ('drupal:path:wildcard' == $value_2['property'] && $value_2['wildcard'] == $value_1['wildcard'])) {
-            // We have two identical rules with same 'indention' in a chain.
-            // This is allowed only if first one has childs and second one has none and one isn't the parent of the other
-            if (!$value_2['parent'] == $value_1['id']) {
-              $has_childs_1 = FALSE;
-              $has_childs_2 = FALSE;
+                foreach ($values['old_items'] as $key_3 => $value_3) {
+                  if ($value_3['parent'] == $value_1['id']) {
+                    $has_childs_1 = TRUE;
+                  }
 
-              foreach ($values['old_items'] as $key_3 => $value_3) {
-                if ($value_3['parent'] == $value_1['id']) {
-                  $has_childs_1 = TRUE;
+                  if ($value_3['parent'] == $value_2['id']) {
+                    $has_childs_2 = TRUE;
+                  }
+
+                  if ($has_childs_1 && $has_childs_2) {
+                    break;
+                  }
                 }
 
-                if ($value_3['parent'] == $value_2['id']) {
-                  $has_childs_2 = TRUE;
+                if ((($value_1['weight'] < $value_2['weight']) && $has_childs_1 && !$has_childs_2) ||
+                    (($value_1['weight'] > $value_2['weight']) && !$has_childs_1 && $has_childs_2)) {
+                  // no error
+                  continue;
                 }
-
-                if ($has_childs_1 && $has_childs_2) {
-                  break;
+                elseif (($value_1['weight'] > $value_2['weight']) && $has_childs_1 && !$has_childs_2) {
+                  form_set_error('old_items][' . $key_1 . '][property', check_plain(t('Theme switching rule could never be reached')));
+                  continue;
+                }
+                elseif (($value_1['weight'] < $value_2['weight']) && !$has_childs_1 && $has_childs_2) {
+                  form_set_error('old_items][' . $key_1 . '][property', check_plain(t('Theme switching rule hides a later one')));
+                  continue;
+                }
+                elseif (($value_1['weight'] < $value_2['weight']) && $has_childs_1 && $has_childs_2) {
+                  form_set_error('old_items][' . $key_1 . '][property', check_plain(t('Theme switching rule should be combined with an identical one below')));
+                  continue;
+                }
+                elseif (($value_1['weight'] > $value_2['weight']) && $has_childs_1 && $has_childs_2) {
+                  form_set_error('old_items][' . $key_1 . '][property', check_plain(t('Theme switching rule should be combined with an identical one above')));
+                  continue;
                 }
               }
 
-              if ((($value_1['weight'] < $value_2['weight']) && $has_childs_1 && !$has_childs_2) ||
-                  (($value_1['weight'] > $value_2['weight']) && !$has_childs_1 && $has_childs_2)) {
-                // no error
-                continue;
-              }
-              elseif (($value_1['weight'] > $value_2['weight']) && $has_childs_1 && !$has_childs_2) {
-                form_set_error('old_items][' . $key_1 . '][property', check_plain(t('Theme switching rule could never be reached')));
-                continue;
-              }
-              elseif (($value_1['weight'] < $value_2['weight']) && !$has_childs_1 && $has_childs_2) {
-                form_set_error('old_items][' . $key_1 . '][property', check_plain(t('Theme switching rule hides a later one')));
-                continue;
-              }
-              elseif (($value_1['weight'] < $value_2['weight']) && $has_childs_1 && $has_childs_2) {
-                form_set_error('old_items][' . $key_1 . '][property', check_plain(t('Theme switching rule should be combined with an identical one below')));
-                continue;
-              }
-              elseif (($value_1['weight'] > $value_2['weight']) && $has_childs_1 && $has_childs_2) {
-                form_set_error('old_items][' . $key_1 . '][property', check_plain(t('Theme switching rule should be combined with an identical one above')));
-                continue;
-              }
+              form_set_error('old_items][' . $key_1 . '][property', check_plain(t('You entered two identical theme switching rules in the chain')));
+              form_set_error('old_items][' . $key_2 . '][property', check_plain(t('You entered two identical theme switching rules in the chain')));
             }
-
-            form_set_error('old_items][' . $key_1 . '][property', check_plain(t('You entered two identical theme switching rules in the chain')));
-            form_set_error('old_items][' . $key_2 . '][property', check_plain(t('You entered two identical theme switching rules in the chain')));
           }
         }
       }
@@ -378,6 +400,18 @@ function themekey_rule_chain_form_validate(&$form, $form_state) {
         }
         else {
           form_set_error('new_item][property', filter_xss(t('ThemeKey requested an unknown validator called %validator to validate the property, %property', array('%validator' => $validator, '%property' => $value_1['property']))), array('em'));
+        }
+      }
+      elseif ('~' == $values['new_item']['operator'] || '!~' == $values['new_item']['operator']) {
+        $rule = array(
+                  'property' => $value_1['property'],
+                  'wildcard' => $value_1['wildcard'],
+                  'operator' => $value_1['operator'],
+                  'value' => $value_1['value'],
+        );
+        $errors = themekey_validator_regex($rule);
+        foreach ($errors as $element => $msg) {
+          form_set_error('new_item][' . $element, filter_xss($msg, array('em')));
         }
       }
     }

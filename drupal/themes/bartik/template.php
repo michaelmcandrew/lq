@@ -1,5 +1,4 @@
 <?php
-// $Id: template.php,v 1.13 2010/12/14 01:04:27 dries Exp $
 
 /**
  * Add body classes if certain regions have content.
@@ -78,8 +77,12 @@ function bartik_process_page(&$variables) {
  * Implements hook_preprocess_maintenance_page().
  */
 function bartik_preprocess_maintenance_page(&$variables) {
+  // By default, site_name is set to Drupal if no db connection is available
+  // or during site installation. Setting site_name to an empty string makes
+  // the site and update pages look cleaner.
+  // @see template_preprocess_maintenance_page
   if (!$variables['db_is_active']) {
-    unset($variables['site_name']);
+    $variables['site_name'] = '';
   }
   drupal_add_css(drupal_get_path('theme', 'bartik') . '/css/maintenance-page.css');
 }
@@ -106,7 +109,6 @@ function bartik_process_maintenance_page(&$variables) {
  * Override or insert variables into the node template.
  */
 function bartik_preprocess_node(&$variables) {
-  $variables['submitted'] = t('published by !username on !datetime', array('!username' => $variables['name'], '!datetime' => $variables['date']));
   if ($variables['view_mode'] == 'full' && node_is_page($variables['node'])) {
     $variables['classes_array'][] = 'node-full';
   }
@@ -148,7 +150,7 @@ function bartik_field__taxonomy_term_reference($variables) {
   $output .= '</ul>';
 
   // Render the top-level DIV.
-  $output = '<div class="' . $variables['classes'] . (!in_array('clearfix', $variables['classes_array']) ? ' clearfix' : '') . '">' . $output . '</div>';
+  $output = '<div class="' . $variables['classes'] . (!in_array('clearfix', $variables['classes_array']) ? ' clearfix' : '') . '"' . $variables['attributes'] .'>' . $output . '</div>';
 
   return $output;
 }

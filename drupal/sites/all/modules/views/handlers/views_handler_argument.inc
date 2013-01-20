@@ -1,7 +1,13 @@
 <?php
 
 /**
- * @defgroup views_argument_handlers Handlers for arguments
+ * @file
+ * @todo.
+ */
+
+/**
+ * @defgroup views_argument_handlers Views argument handlers
+ * Handlers to tell Views how to contextually filter queries.
  * @{
  */
 
@@ -30,7 +36,24 @@
  * @ingroup views_argument_handlers
  */
 class views_handler_argument extends views_handler {
-  var $name_field = NULL;
+  var $validator = NULL;
+  var $argument = NULL;
+  var $value = NULL;
+
+  /**
+   * The table to use for the name, should it not be in the same table as the argument.
+   * @var string
+   */
+  var $name_table;
+
+  /**
+   * The field to use for the name to use in the summary, which is
+   * the displayed output. For example, for the node: nid argument,
+   * the argument itself is the nid, but node.title is displayed.
+   * @var string
+   */
+  var $name_field;
+
   /**
    * Constructor
    */
@@ -61,6 +84,9 @@ class views_handler_argument extends views_handler {
     if (!isset($options['summary']['format']) && !empty($options['style_plugin'])) {
       $this->options['summary']['format'] = $options['style_plugin'];
     }
+
+    // Setup default value.
+    $options['style_options'] = isset($options['style_options']) ? $options['style_options'] : array();
 
     if (!isset($options['summary']['sort_order']) && !empty($options['default_action']) && $options['default_action'] == 'summary asc') {
       $this->options['default_action'] = 'summary';
@@ -156,17 +182,17 @@ class views_handler_argument extends views_handler {
     $options['exception'] = array(
       'contains' => array(
         'value' => array('default' => 'all'),
-        'title_enable' => array('default' => 0),
-        'title' => array('default' => t('All'), 'translatable' => TRUE),
+        'title_enable' => array('default' => FALSE, 'bool' => TRUE),
+        'title' => array('default' => 'All', 'translatable' => TRUE),
       ),
     );
-    $options['title_enable'] = array('default' => 0);
+    $options['title_enable'] = array('default' => FALSE, 'bool' => TRUE);
     $options['title'] = array('default' => '', 'translatable' => TRUE);
-    $options['breadcrumb_enable'] = array('default' => 0);
+    $options['breadcrumb_enable'] = array('default' => FALSE, 'bool' => TRUE);
     $options['breadcrumb'] = array('default' => '', 'translatable' => TRUE);
     $options['default_argument_type'] = array('default' => 'fixed', 'export' => 'export_plugin');
     $options['default_argument_options'] = array('default' => array(), 'export' => FALSE);
-    $options['default_argument_skip_url'] = array('default' => FALSE);
+    $options['default_argument_skip_url'] = array('default' => FALSE, 'bool' => TRUE);
     $options['summary_options'] = array('default' => array(), 'export' => FALSE);
     $options['summary'] = array(
       'contains' => array(
@@ -175,7 +201,7 @@ class views_handler_argument extends views_handler {
         'format' => array('default' => 'default_summary', 'export' => 'export_summary'),
       ),
     );
-    $options['specify_validation'] = array('default' => 0);
+    $options['specify_validation'] = array('default' => FALSE, 'bool' => TRUE);
     $options['validate'] = array(
       'contains' => array(
         'type' => array('default' => 'none', 'export' => 'export_validation'),
@@ -190,11 +216,19 @@ class views_handler_argument extends views_handler {
   function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
 
+    $argument_text = $this->view->display_handler->get_argument_text();
+
     $form['#pre_render'][] = 'views_ui_pre_render_move_argument_options';
+
+    $form['description'] = array(
+      '#markup' => $argument_text['description'],
+      '#theme_wrappers' => array('container'),
+      '#attributes' => array('class' => array('description')),
+    );
 
     $form['no_argument'] = array(
       '#type' => 'fieldset',
-      '#title' => t('When the filter value is <em>NOT</em> in the URL'),
+      '#title' => $argument_text['filter value not present'],
     );
     // Everything in the fieldset is floated, so the last element needs to
     // clear those floats.
@@ -256,7 +290,7 @@ class views_handler_argument extends views_handler {
 
     $form['argument_present'] = array(
       '#type' => 'fieldset',
-      '#title' => t('When the filter value <em>IS</em> in the URL or a default is provided'),
+      '#title' => $argument_text['filter value present'],
     );
     $form['title_enable'] = array(
       '#type' => 'checkbox',
@@ -346,6 +380,7 @@ class views_handler_argument extends views_handler {
               '#prefix' => '<div id="edit-options-validate-options-' . $id . '-wrapper">',
               '#suffix' => '</div>',
               '#type' => 'item',
+              // Even if the plugin has no options add the key to the form_state.
               '#input' => TRUE, // trick it into checking input to make #process run
               '#dependency' => array(
                 'edit-options-specify-validation' => array('1'),
@@ -436,6 +471,12 @@ class views_handler_argument extends views_handler {
       // Copy the now submitted options to their final resting place so they get saved.
       $form_state['values']['options']['validate_options'] = $options;
     }
+
+    // Clear out the content of title if it's not enabled.
+    $options =& $form_state['values']['options'];
+    if (empty($options['title_enable'])) {
+      $options['title'] = '';
+    }
   }
 
   /**
@@ -457,6 +498,7 @@ class views_handler_argument extends views_handler {
         'form method' => 'default_argument_form',
         'has default argument' => TRUE,
         'default only' => TRUE, // this can only be used for missing argument, not validation failure
+        'breadcrumb' => TRUE, // generate a breadcrumb to here
       ),
       'not found' => array(
         'title' => t('Hide view'),
@@ -474,6 +516,11 @@ class views_handler_argument extends views_handler {
         'title' => t('Display contents of "No results found"'),
         'method' => 'default_empty',
         'breadcrumb' => TRUE, // generate a breadcrumb to here
+      ),
+      'access denied' => array(
+        'title' => t('Display "Access Denied"'),
+        'method' => 'default_access_denied',
+        'breadcrumb' => FALSE, // generate a breadcrumb to here
       ),
     );
 
@@ -533,6 +580,8 @@ class views_handler_argument extends views_handler {
             '#suffix' => '</div>',
             '#id' => 'edit-options-argument-default-options-' . $id,
             '#type' => 'item',
+            // Even if the plugin has no options add the key to the form_state.
+            '#input' => TRUE,
             '#dependency' => array(
               'radio:options[default_action]' => array('default'),
               'edit-options-default-argument-type' => array($id)
@@ -558,7 +607,7 @@ class views_handler_argument extends views_handler {
     $summary_plugins = array();
     $format_options = array();
     foreach ($style_plugins as $key => $plugin) {
-      if ($plugin['type'] == 'summary') {
+      if (isset($plugin['type']) && $plugin['type'] == 'summary') {
         $summary_plugins[$key] = $plugin;
         $format_options[$key] = $plugin['title'];
       }
@@ -675,6 +724,17 @@ class views_handler_argument extends views_handler {
   }
 
   /**
+   * Default action: access denied.
+   *
+   * If an argument was expected and was not given, in this case, report
+   * the view as 'access denied'.
+   */
+  function default_access_denied() {
+    $this->view->build_info['denied'] = TRUE;
+    return FALSE;
+  }
+
+  /**
    * Default action: empty
    *
    * If an argument was expected and was not given, in this case, display
@@ -711,6 +771,20 @@ class views_handler_argument extends views_handler {
     $plugin = $this->get_plugin('argument default');
     if ($plugin) {
       return $plugin->get_argument();
+    }
+  }
+
+  /**
+   * Process the summary arguments for display.
+   *
+   * For example, the validation plugin may want to alter an argument for use in
+   * the URL.
+   */
+  function process_summary_arguments(&$args) {
+    if ($this->options['validate']['type'] != 'none') {
+      if (isset($this->validator) || $this->validator = $this->get_plugin('argument validator')) {
+        $this->validator->process_summary_arguments($args);
+      }
     }
   }
 
@@ -972,7 +1046,7 @@ class views_handler_argument extends views_handler {
   /**
    * Get the value of this argument.
    */
-  function get_value($values, $field = NULL) {
+  function get_value() {
     // If we already processed this argument, we're done.
     if (isset($this->argument)) {
       return $this->argument;
@@ -1022,7 +1096,7 @@ class views_handler_argument extends views_handler {
 
     $plugin = views_get_plugin('style', $name);
     if ($plugin) {
-      $plugin->init($this->view, $this->display, $options);
+      $plugin->init($this->view, $this->view->display_handler->display, $options);
       // Write which plugin to use.
       $output .= $indent . $prefix . "['summary']['$option'] = '$name';\n";
 
@@ -1115,7 +1189,13 @@ class views_handler_argument extends views_handler {
 
     $plugin = views_get_plugin($type, $name);
     if ($plugin) {
-      $plugin->init($this->view, $this, $options);
+      // Style plugins expects different parameters as argument related plugins.
+      if ($type == 'style') {
+        $plugin->init($this->view, $this->view->display_handler->display, $options);
+      }
+      else {
+        $plugin->init($this->view, $this, $options);
+      }
       return $plugin;
     }
   }

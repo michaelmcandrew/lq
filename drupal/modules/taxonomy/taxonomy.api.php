@@ -1,5 +1,4 @@
 <?php
-// $Id: taxonomy.api.php,v 1.11 2010/10/23 15:30:34 webchick Exp $
 
 /**
  * @file
@@ -180,6 +179,30 @@ function hook_taxonomy_term_update($term) {
  */
 function hook_taxonomy_term_delete($term) {
   db_delete('term_synoynm')->condition('tid', $term->tid)->execute();
+}
+
+/**
+ * Act on a taxonomy term that is being assembled before rendering.
+ *
+ * The module may add elements to $term->content prior to rendering. The
+ * structure of $term->content is a renderable array as expected by
+ * drupal_render().
+ *
+ * @param $term
+ *   The term that is being assembled for rendering.
+ * @param $view_mode
+ *   The $view_mode parameter from taxonomy_term_view().
+ * @param $langcode
+ *   The language code used for rendering.
+ *
+ * @see hook_entity_view()
+ */
+function hook_taxonomy_term_view($term, $view_mode, $langcode) {
+  $term->content['my_additional_field'] = array(
+    '#markup' => $additional_field,
+    '#weight' => 10,
+    '#theme' => 'mymodule_my_additional_field',
+  );
 }
 
 /**

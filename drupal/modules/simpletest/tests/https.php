@@ -1,15 +1,14 @@
 <?php
-// $Id: https.php,v 1.3 2010/11/05 19:05:02 dries Exp $
 
 /**
  * @file
- * Fake an https request, for use during testing.
+ * Fake an HTTPS request, for use during testing.
  */
 
 // Set a global variable to indicate a mock HTTPS request.
 $is_https_mock = empty($_SERVER['HTTPS']);
 
-// Change to https.
+// Change to HTTPS.
 $_SERVER['HTTPS'] = 'on';
 foreach ($_SERVER as $key => $value) {
   $_SERVER[$key] = str_replace('modules/simpletest/tests/https.php', 'index.php', $value);

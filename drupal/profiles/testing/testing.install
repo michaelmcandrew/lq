@@ -1,10 +1,15 @@
 <?php
-// $Id: testing.install,v 1.2 2010/08/27 12:36:53 webchick Exp $
+/**
+ * @file
+ * Install, update and uninstall functions for the testing profile.
+ */
 
 /**
  * Implements hook_install().
  *
  * Perform actions to set up the site for this profile.
+ *
+ * @see system_install()
  */
 function testing_install() {
   // Allow visitor account creation, but with administrative approval.

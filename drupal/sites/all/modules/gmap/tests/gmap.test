@@ -6,7 +6,7 @@
  */
 
 class GMapSimpleAPITest extends DrupalUnitTestCase {
-  function getInfo() {
+  public static function getInfo() {
     return array(
       'name' => 'GMap API sanity checks',
       'description' => 'Test the simple API functions in the public GMap API.',
@@ -17,7 +17,7 @@ class GMapSimpleAPITest extends DrupalUnitTestCase {
   /**
    * Verify gmap_todim().
    */
-  function testGMapToDim() {
+  public function testGMapToDim() {
     // Valid stuff
     $this->assertEqual(gmap_todim('500PX'), '500px', t('Testing case normalization'));
     $this->assertEqual(gmap_todim('   500    px   '), '500px', t('Testing spaces'));
@@ -42,7 +42,7 @@ class GMapSimpleAPITest extends DrupalUnitTestCase {
 }
 
 class GMapMacroTest extends DrupalUnitTestCase {
-  function getInfo() {
+  public static function getInfo() {
     return array(
       'name' => 'GMap Macro checks',
       'description' => 'Test the ability to parse macros into map arrays.',
@@ -50,7 +50,12 @@ class GMapMacroTest extends DrupalUnitTestCase {
     );
   }
 
-  function testEmptyMacro() {
+  public function setUp() {
+    parent::setUp();
+    require_once(dirname(__FILE__) . '/../gmap.module');
+  }
+
+  public function testEmptyMacro() {
     $macro = '';
     $map = gmap_parse_macro($macro);
     $this->assertEqual(preg_match('/^auto\d+map$/', $map['id']), 1, t('Testing ID injection'));
@@ -67,7 +72,7 @@ class GMapMacroTest extends DrupalUnitTestCase {
     $this->assertEqual(count($map), 1, t('Testing contents of map array.'));
   }
 
-  function testMacroBehaviorFlags() {
+  public function testMacroBehaviorFlags() {
     $macro = '[gmap |behavior=+foobehavior +barbehavior -bazbehavior]';
     $map = gmap_parse_macro($macro);
     $b = $map['behavior'];
@@ -78,7 +83,7 @@ class GMapMacroTest extends DrupalUnitTestCase {
     //$this->assertEqual(count($b), 3, t('Testing for leaked default flags'));
   }
 
-  function testMacroRenamedDirectives() {
+  public function testMacroRenamedDirectives() {
     $macro = '[gmap |type=Foo |control=Bar |behaviour=+baz |tcontrol=on]';
     $map = gmap_parse_macro($macro);
     $this->assertEqual($map['maptype'], 'Foo', t('Testing type -> maptype conversion'));

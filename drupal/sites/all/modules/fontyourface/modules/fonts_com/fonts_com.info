@@ -5,12 +5,11 @@ package = @font-your-face
 core = 7.x
 php = 5.2.0
 
-files[] = fonts_com.install
-files[] = fonts_com.module
+files[] = api.inc
 
-; Information added by drupal.org packaging script on 2011-04-10
-version = "7.x-1.2"
+; Information added by drupal.org packaging script on 2012-11-13
+version = "7.x-2.6"
 core = "7.x"
 project = "fontyourface"
-datestamp = "1302448615"
+datestamp = "1352782302"
 

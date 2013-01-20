@@ -1,4 +1,10 @@
 <?php
+
+/**
+ * @file
+ * Definition of views_handler_field_numeric.
+ */
+
 /**
  * Render a field as a numeric value
  *
@@ -12,11 +18,11 @@ class views_handler_field_numeric extends views_handler_field {
   function option_definition() {
     $options = parent::option_definition();
 
-    $options['set_precision'] = array('default' => FALSE);
+    $options['set_precision'] = array('default' => FALSE, 'bool' => TRUE);
     $options['precision'] = array('default' => 0);
     $options['decimal'] = array('default' => '.', 'translatable' => TRUE);
     $options['separator'] = array('default' => ',', 'translatable' => TRUE);
-    $options['format_plural'] = array('default' => FALSE);
+    $options['format_plural'] = array('default' => FALSE, 'bool' => TRUE);
     $options['format_plural_singular'] = array('default' => '1');
     $options['format_plural_plural'] = array('default' => '@count');
     $options['prefix'] = array('default' => '', 'translatable' => TRUE);
@@ -50,8 +56,15 @@ class views_handler_field_numeric extends views_handler_field {
       );
     }
     $form['separator'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Thousands separator'),
+      '#type' => 'select',
+      '#title' => t('Thousands marker'),
+      '#options' => array(
+        '' => t('- None -'),
+        ',' => t('Comma'),
+        ' ' => t('Space'),
+        '.' => t('Decimal'),
+        '\'' => t('Apostrophe'),
+      ),
       '#default_value' => $this->options['separator'],
       '#description' => t('What single character to use as the thousands separator.'),
       '#size' => 2,
@@ -117,6 +130,8 @@ class views_handler_field_numeric extends views_handler_field {
       $value = format_plural($value, $this->options['format_plural_singular'], $this->options['format_plural_plural']);
     }
 
-    return $this->sanitize_value($this->options['prefix'] . $value . $this->options['suffix']);
+    return $this->sanitize_value($this->options['prefix'], 'xss')
+      . $this->sanitize_value($value)
+      . $this->sanitize_value($this->options['suffix'], 'xss');
   }
 }

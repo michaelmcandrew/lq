@@ -1,3 +1,52 @@
+ThemeKey 7.x-2.3, 2012-07-24
+----------------------------
+[#686650]  daggerhart, mkalkbrenner: add Organic Groups to properties (continued experimental implementation)
+[#1651026] mkalkbrenner: fixed notice when activating a static rule
+[#1653236] minorOffense: Add support for PURL modifiers
+[#1623010] mkalkbrenner: fixed Notice: Undefined property: stdClass::$revision in themekey_ui_node_update()
+[#1694782] mkalkbrenner: fixed Notice: Undefined index: enabled in themekey_rule_set()
+[        ] mkalkbrenner: verify that "Selectable Themes" are configured when activating "Add theme option to user profile" provided "ThemeKey User Profile" module
+
+
+ThemeKey 7.x-2.2, 2012-05-24
+----------------------------
+[#1598752] jadwigo, mkalkbrenner: fixed notice in non-multilingual sites
+
+
+ThemeKey 7.x-2.1, 2012-05-24
+----------------------------
+[        ] mkalkbrenner: fixed warnings in themekey_browser_detection.php
+[        ] mkalkbrenner: added basic integration of module purl to prepare the integration with the mobile tools module
+[#1589354] CoyoteCreed, mkalkbrenner: ThemeKey calls obsolete Organic Groups function
+[        ] mkalkbrenner: only validate enabled rules
+[#1513070] mkalkbrenner: Improve Features support
+[#686650]  daggerhart, mkalkbrenner: add Organic Groups to properties (exprimental)
+[#1030268] mkalkbrenner: Toggle "Property drupal:path is case sensitive" does not work for path aliases
+[#1413144] Mod74, mkalkbrenner: Detecting Windows Phone 7
+[#1394356] mkalkbrenner: fix language prefix handling for drupal:path used with path aliases
+
+
+ThemeKey 7.x-2.0, 2012-01-19
+----------------------------
+[        ] mkalkbrenner: fixed rare fatal error "Call to undefined function apache_request_headers()" if property system:http_header is used in combination with ThemeKey Debug and drush
+[#1410182] souk: taxonomy:tid_and_childs not working as intended
+
+
+ThemeKey 7.x-2.0-rc1, 2011-12-14
+--------------------------------
+[        ] mkalkbrenner: integration / support of blog module
+[#1307126] mkalkbrenner: Treat blogs/username path as the same as user created nodes when selected in the UI
+[        ] mkalkbrenner: fixed warning in ThemeKey UI if sub theme contains no screenshot and base theme is not actived for selection
+[        ] mkalkbrenner: prevent activation ThemeKey UI features if not at least one selectable theme has been chosen
+[#1357698] mkalkbrenner: system:month and system:day_of_week have to return english values
+[        ] mkalkbrenner: new property for HTTP headers: system:http_header
+
+
+ThemeKey 7.x-2.0-beta1, 2011-10-07
+---------------------------------
+[#1298644] mkalkbrenner: new operators "*", "!*", "!~"
+
+
 ThemeKey 7.x-1.5, 2011-09-19
 ----------------------------
 [#1254144] mkalkbrenner: integration / support of Revisioning module

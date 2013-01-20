@@ -1,5 +1,4 @@
 <?php
-// $Id: html.tpl.php,v 1.6 2010/11/24 03:30:59 webchick Exp $
 
 /**
  * @file
@@ -40,6 +39,8 @@
  * @see template_preprocess()
  * @see template_preprocess_html()
  * @see template_process()
+ *
+ * @ingroup themeable
  */
 ?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN"
   "http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd">

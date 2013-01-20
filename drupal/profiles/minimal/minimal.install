@@ -1,10 +1,15 @@
 <?php
-// $Id: minimal.install,v 1.6 2010/07/08 03:41:27 webchick Exp $
+/**
+ * @file
+ * Install, update and uninstall functions for the minimal installation profile.
+ */
 
 /**
  * Implements hook_install().
  *
- * Perform actions to set up the site for this profile.
+ * Performs actions to set up the site for this profile.
+ *
+ * @see system_install()
  */
 function minimal_install() {
   // Enable some standard blocks.

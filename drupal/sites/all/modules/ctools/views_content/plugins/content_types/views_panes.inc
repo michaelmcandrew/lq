@@ -13,6 +13,7 @@ function views_content_views_panes_ctools_content_types() {
   return array(
     'title' => t('View panes'),
     'admin settings' => 'views_content_admin_form',
+    'all contexts' => TRUE,
   );
 }
 
@@ -86,10 +87,7 @@ function _views_content_panes_content_type($view, $display) {
     return;
   }
 
-  $title = $display->handler->get_option('pane_title');
-  if (!$title) {
-    $title = t('@view: @display', array('@view' => $view->name, '@display' => $display->display_title));
-  }
+  $title = views_content_get_display_title($view, $display->id);
 
   $description = $display->handler->get_option('pane_description');
   if (!$description) {
@@ -150,7 +148,7 @@ function views_content_views_panes_content_type_render($subtype, $conf, $panel_a
   $args = array();
   $arguments = $view->display_handler->get_option('arguments');
 
-  $context_keys = array_keys($contexts);
+  $context_keys = isset($conf['context']) ? $conf['context'] : array();
   foreach ($view->display_handler->get_argument_input() as $id => $argument) {
     switch ($argument['type']) {
       case 'context':
@@ -171,11 +169,11 @@ function views_content_views_panes_content_type_render($subtype, $conf, $panel_a
         break;
 
       case 'panel':
-        $args[] = $panel_args[$argument['panel']];
+        $args[] = isset($panel_args[$argument['panel']]) ? $panel_args[$argument['panel']] : NULL;
         break;
 
       case 'user':
-        $args[] = (isset($conf['arguments'][$id])  && $conf['arguments'][$id] !== '') ? $conf['arguments'][$id] : NULL;
+        $args[] = (isset($conf['arguments'][$id])  && $conf['arguments'][$id] !== '') ? ctools_context_keyword_substitute($conf['arguments'][$id], array(), $contexts) : NULL;
         break;
 
      case 'wildcard':
@@ -213,7 +211,7 @@ function views_content_views_panes_content_type_render($subtype, $conf, $panel_a
 
   $block = new stdClass();
   $block->module = 'views';
-  $block->delta  = $view->name . $display;
+  $block->delta  = $view->name . '-' . $display;
 
   if (($allow['link_to_view'] && !empty($conf['link_to_view'])) ||
       (!$allow['link_to_view'] && $view->display_handler->get_option('link_to_view'))) {
@@ -234,50 +232,37 @@ function views_content_views_panes_content_type_render($subtype, $conf, $panel_a
   }
 
   if ($allow['items_per_page'] && isset($conf['items_per_page'])) {
-    $view->display_handler->set_option('items_per_page', $conf['items_per_page']);
-    // And here too, which works in Views 3 where the above does not.
     $view->set_items_per_page($conf['items_per_page']);
   }
 
   if ($allow['offset']) {
-    $view->display_handler->set_option('offset', $conf['offset']);
     $view->set_offset($conf['offset']);
   }
 
   if ($allow['use_pager']) {
     // Only set use_pager if they differ, this way we can avoid overwriting the
     // pager type that Views uses.
-    // Views 3 version
-    if (method_exists($view, 'init_pager')) {
-      $pager = $view->display_handler->get_option('pager');
-      if ($conf['use_pager'] && ($pager['type'] == 'none' || $pager['type'] == 'some')) {
-        $pager['type'] = 'full';
-      }
-      elseif (!$conf['use_pager'] && $pager['type'] != 'none' && $pager['type'] != 'some') {
-        $pager['type'] = $view->get_items_per_page() || !empty($pager['options']['items_per_page']) ? 'some' : 'none';
-      }
-
-      if ($conf['use_pager']) {
-        if (!isset($pager['options']['id']) || $pager['options']['id'] != $conf['pager_id']) {
-          $pager['options']['id'] = $conf['pager_id'];
-        }
-      }
-
-      $view->display_handler->set_option('pager', $pager);
+    $pager = $view->display_handler->get_option('pager');
+    if ($conf['use_pager'] && ($pager['type'] == 'none' || $pager['type'] == 'some')) {
+      $pager['type'] = 'full';
     }
-    else {
-      if (!$view->display_handler->get_option('use_pager') || empty($conf['use_pager'])) {
-        $view->display_handler->set_option('use_pager', $conf['use_pager']);
-      }
-
-      $view->display_handler->set_option('pager_element', $conf['pager_id']);
+    elseif (!$conf['use_pager'] && $pager['type'] != 'none' && $pager['type'] != 'some') {
+      $pager['type'] = $view->get_items_per_page() || !empty($pager['options']['items_per_page']) ? 'some' : 'none';
     }
+
+    if ($conf['use_pager']) {
+      if (!isset($pager['options']['id']) || (isset($conf['pager_id']) && $pager['options']['id'] != $conf['pager_id'])) {
+        $pager['options']['id'] = $conf['pager_id'];
+      }
+    }
+
+    $view->display_handler->set_option('pager', $pager);
   }
 
   if ($allow['fields_override']) {
     if ($conf['fields_override']) {
       $fields = $view->get_items('field');
-      foreach ($conf['fields_override'] as $field => $display) {
+      foreach ($fields as $field => $display) {
         $fields[$field]['exclude'] = empty($conf['fields_override'][$field]);
       }
       $view->display_handler->set_option('fields', $fields);
@@ -298,7 +283,7 @@ function views_content_views_panes_content_type_render($subtype, $conf, $panel_a
 
   $block->title = $view->get_title();
 
-  if (empty($view->total_rows) || $view->total_rows <= $view->display_handler->get_option('items_per_page')) {
+  if (empty($view->total_rows) || $view->total_rows <= $view->get_items_per_page()) {
     unset($block->more);
   }
 
@@ -321,14 +306,16 @@ function views_content_views_panes_content_type_render($subtype, $conf, $panel_a
  * settings for a particular item.
  */
 function views_content_views_panes_add_defaults(&$conf, $view) {
+  $pager = $view->display_handler->get_option('pager');
+
   $conf += array(
     'link_to_view' => $view->display_handler->get_option('link_to_view'),
     'more_link' => $view->display_handler->get_option('more_link'),
     'feed_icons' => FALSE,
-    'use_pager' => $view->display_handler->get_option('use_pager'),
-    'pager_id' => $view->display_handler->get_option('element_id'),
-    'items_per_page' => $view->display_handler->get_option('items_per_page'),
-    'offset' => $view->display_handler->get_option('offset'),
+    'use_pager' => $pager['type'] != 'none' && $pager['type'] != 'some',
+    'pager_id' => isset($pager['options']['id']) ? $pager['options']['id'] : 0,
+    'items_per_page' => !empty($pager['options']['items_per_page']) ? $pager['options']['items_per_page'] : 10,
+    'offset' => !empty($pager['options']['offset']) ? $pager['options']['offset'] : 0,
     'path_override' => FALSE,
     'path' => $view->get_path(),
     'fields_override' => $view->display_handler->get_option('fields_override'),
@@ -347,11 +334,18 @@ function views_content_views_panes_content_type_edit_form($form, &$form_state) {
   $view = views_get_view($name);
 
   if (empty($view)) {
-    $form['markup'] = array('#value' => t('Broken/missing/deleted view.'));
-    return;
+    $form['markup'] = array('#markup' => t('Broken/missing/deleted view.'));
+    return $form;
   }
 
   $view->set_display($display_id);
+
+  // If it couldn't set the display and we got the default display instead,
+  // fail.
+  if ($view->current_display == 'default') {
+    $form['markup'] = array('#markup' => t('Broken/missing/deleted view display.'));
+    return $form;
+  }
 
   $allow = $view->display_handler->get_option('allow');
 
@@ -365,6 +359,7 @@ function views_content_views_panes_content_type_edit_form($form, &$form_state) {
       $form['arguments'][$id] = array(
         '#type' => 'textfield',
         '#default_value' => isset($conf['arguments'][$id]) ? $conf['arguments'][$id] : '',
+        '#description' => t('You may use keywords for substitutions.'),
         '#title' => check_plain($argument['label']),
       );
     }
@@ -420,13 +415,13 @@ function views_content_views_panes_content_type_edit_form($form, &$form_state) {
     $form['use_pager'] = array(
       '#type' => 'checkbox',
       '#title' => t('Use pager'),
-        '#default_value' => isset($conf['use_pager']) ? $conf['use_pager'] : $view->display_handler->get_option('use_pager'),
+        '#default_value' => $conf['use_pager'],
       '#id' => 'use-pager-checkbox',
       '#prefix' => '<div class="container-inline">',
     );
     $form['pager_id'] = array(
       '#type' => 'textfield',
-      '#default_value' => isset($conf['pager_id']) ? $conf['pager_id'] : $view->display_handler->get_option('element_id'),
+      '#default_value' => $conf['pager_id'],
       '#title' => t('Pager ID'),
       '#size' => 4,
       '#id' => 'use-pager-textfield',
@@ -437,7 +432,7 @@ function views_content_views_panes_content_type_edit_form($form, &$form_state) {
   if ($allow['items_per_page']) {
     $form['items_per_page'] = array(
       '#type' => 'textfield',
-      '#default_value' => isset($conf['items_per_page']) ? $conf['items_per_page'] : $view->display_handler->get_option('items_per_page'),
+      '#default_value' => $conf['items_per_page'],
       '#title' => t('Num items'),
       '#size' => 4,
       '#description' => t('Select the number of items to display, or 0 to display all results.'),
@@ -446,7 +441,7 @@ function views_content_views_panes_content_type_edit_form($form, &$form_state) {
   if ($allow['offset']) {
     $form['offset'] = array(
       '#type' => 'textfield',
-      '#default_value' => isset($conf['offset']) ? $conf['offset'] : $view->display_handler->get_option('offset'),
+      '#default_value' => $conf['offset'],
       '#title' => t('Offset'),
       '#size' => 4,
       '#description' => t('Enter the number of items to skip; enter 0 to skip no items.'),
@@ -531,6 +526,19 @@ function views_content_views_panes_content_type_edit_form($form, &$form_state) {
     }
   }
 
+  // The exposed sort stuff doesn't fall into $exposed_form['#info'] so we
+  // have to handle it separately.
+  if (isset($exposed_form['sort_by'])) {
+    $form['exposed']['sort_by'] = $exposed_form['sort_by'];
+  }
+
+  if (isset($exposed_form['sort_order'])) {
+    $form['exposed']['sort_order'] = $exposed_form['sort_order'];
+  }
+
+  // Add the view object to the form to allow additional customization
+  $form_state['view'] = $view;
+
   return $form;
 }
 
@@ -563,8 +571,9 @@ function views_content_views_panes_content_type_admin_title($subtype, $conf, $co
   $view->set_display($display);
   views_content_views_panes_add_defaults($conf, $view);
 
-  $title = $view->display_handler->get_option('pane_title');
-  return check_plain($title ? $title : $view->name);
+  $title = views_content_get_display_title($view, $display);
+
+  return check_plain($title);
 }
 
 /**
@@ -590,8 +599,10 @@ function views_content_views_panes_content_type_admin_info($subtype, $conf, $con
     $argument_input = $view->display_handler->get_option('argument_input');
 
     foreach ($conf['arguments'] as $key => $value) {
-      $label = $argument_input[$key]['label'];
-      $info[] = $label . ': ' . $value;
+      if(!empty($value)){
+        $label = $argument_input[$key]['label'];
+        $info[] = $label . ': ' . $value;
+      }
     }
   }
 
@@ -600,7 +611,7 @@ function views_content_views_panes_content_type_admin_info($subtype, $conf, $con
     $block->title = array_shift($info);
 
     $info[] = $view->display_handler->get_option('pane_description');
-    $block->content = theme('item_list', $info);
+    $block->content = theme('item_list', array('items' => $info));
   }
   else {
     $block->title = $view->display_handler->get_option('pane_description');

@@ -1,12 +1,7 @@
 <?php
-// $Id: template.php,v 1.45 2010/12/01 00:18:15 webchick Exp $
 
 /**
- * Return a themed breadcrumb trail.
- *
- * @param $breadcrumb
- *   An array containing the breadcrumb links.
- * @return a string containing the breadcrumb output.
+ * Override of theme_breadcrumb().
  */
 function garland_breadcrumb($variables) {
   $breadcrumb = $variables['breadcrumb'];

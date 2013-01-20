@@ -199,7 +199,7 @@ function login_destination_edit_form($form, &$form_state, array $rule = array())
     '#title' => t('Redirect upon triggers'),
     '#options' => array('login' => 'Login, registration, one-time login link', 'logout' => 'Logout'),
     '#default_value' => $triggers,
-    '#description' => 'Redirect only upon selected triggers.',
+    '#description' => 'Redirect only upon selected trigger(s). If you select no triggers, all of them will be used.',
   );
 
   $type = $rule['pages_type'];

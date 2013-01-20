@@ -99,6 +99,11 @@ function location_search_search_execute($keys = NULL, $conditions = NULL) {
     // Fuzzy search -- Use the fulltext routines against the indexed locations.
     $query = db_select('search_index', 'i')->extend('SearchQuery')->extend('PagerDefault');
     $query->join('location', 'l', 'l.lid = i.sid');
+    // Add access control.
+    if (!location_search_add_access_control($query)) {
+      return array();
+    }
+
     $query->searchExpression($keys, 'node');
 
     // Insert special keywords.
@@ -139,6 +144,11 @@ function location_search_search_execute($keys = NULL, $conditions = NULL) {
     $query = db_select('location', 'l')->extend('PagerDefault');
     // sid is the alias so that our results match the fulltext search results.
     $query->addField('l', 'lid', 'sid');
+    // Add access control.
+    if (!location_search_add_access_control($query)) {
+      return array();
+    }
+
     // Insert special keywords.
     if ($value = search_expression_extract($keys, 'country')) {
       $query->condition('l.country', $value);
@@ -201,6 +211,67 @@ function location_search_search_execute($keys = NULL, $conditions = NULL) {
 
   }
   return $results;
+}
+
+/**
+ * Add access control for users & nodes to the search query.
+ *
+ * @param $query
+ *   The query object.
+ *
+ * @return
+ *   Boolean for whether or not to run a query at all.
+ */
+function location_search_add_access_control(&$query) {
+  // Add access control.
+  $has_user_location_access = user_access('access user profiles') && user_access('view all user locations');
+  $has_content_access = user_access('access content');
+
+  if (!$has_user_location_access && !$has_content_access) {
+    // The user has access to no locations.
+    return FALSE;
+  }
+  elseif ($has_user_location_access && !$has_content_access) {
+    // The user doesn't have access to nodes, so include only locations
+    // that don't belong to nodes.
+    $query->join('location_instance', 'li', 'l.lid = li.lid AND li.nid = 0');
+  }
+  elseif (!$has_user_location_access && $has_content_access) {
+    // The user doesn't have access to user locations, so include only
+    // locations that don't belong to users.
+    // This also means we'll need to enforce node access.
+    $query->join('location_instance', 'li', 'l.lid = li.lid AND li.uid = 0');
+    $query->join('node', 'n', 'li.nid = n.nid AND n.status = 1');
+    $query->addMetaData('base_table', 'node');
+    $query->addTag('node_access');
+  }
+  else {
+    // The user has access to both.  However, for the locations that
+    // belong to nodes, we need to use node access. These are the ones with
+    // location_instance.nid != 0
+    // location_instance.nid = 0 means the location instance belongs
+    // to a user record.
+    $query->join('location_instance', 'li', 'l.lid = li.lid');
+    $query->leftjoin('node', 'n', 'li.nid = n.nid AND n.status = 1');
+
+    // The node part must use a sub-select because if the node access
+    // rewrites get added to the main query there will never be any user
+    // results because location instance will be inner joined to node access.
+    $subselect = db_select('node', 'subnode');
+    $subselect->addField('subnode', 'nid');
+    $subselect->addMetaData('base_table', 'node');
+    $subselect->addTag('node_access');
+
+    // If we pass in the subselect query object then when the pager query is
+    // run later on the node_access alterations don't get applied to the
+    // subselect. So instead we pass in the array result set.
+    $query->condition(db_or()
+      ->condition('li.uid', 0, '<>')
+      ->condition(db_and()
+        ->condition('li.nid', 0, '<>')
+        ->condition('n.nid', $subselect->execute()->fetchCol(), 'IN')));
+  }
+  return TRUE;
 }
 
 function location_search_form_alter(&$form, &$form_state, $form_id) {
@@ -298,7 +369,9 @@ function location_search_form_alter(&$form, &$form_state, $form_id) {
       if (variable_get('location_search_map_address', 1)) {
         $map_fields['address'] = 'locpick_address';
       }
-      $form['advanced']['proximity']['map']['#value'] = gmap_set_location(variable_get('location_search_map_macro', '[gmap |behavior=+collapsehack]'), $form['advanced']['proximity'], $map_fields);
+      if (module_exists('gmap')) {
+        $form['advanced']['proximity']['map']['#value'] = gmap_set_location(variable_get('location_search_map_macro', '[gmap |behavior=+collapsehack]'), $form['advanced']['proximity'], $map_fields);
+      }
     }
 
     $form['advanced']['submit'] = array(

@@ -162,31 +162,32 @@ function gmap_taxonomy_node_update($node) {
     ->condition('nid', $node->nid)
     ->execute();
 
-  $status = variable_get('gmap_taxonomy_vocabs', array());
-  $marker = '';
-  // @@@ PROBLEM -- $node->taxonomy doesn't exist anymore!
-  if (isset($node->taxonomy) && is_array($node->taxonomy)) {
-    foreach ($node->taxonomy as $voc => $terms) {
-      if (isset($status[$voc]) && $status[$voc]) {
-        $t = $terms;
-        if (!is_array($t)) {
-          $t = array($t);
-        }
-        foreach ($t as $term) {
-          $result = db_query('SELECT marker, tid FROM {gmap_taxonomy_term} WHERE tid = :tid', array(':tid' => $term));
-          if ($m = db_fetch_object($result)) {
-            $marker = $m->marker;
-            $markertid = $m->tid;
-          }
-        }
-      }
-    }
-    if (!empty($marker)) {
+  // Get list of taxonomy_term_reference field names
+  $gmap_taxonomy_fields = gmap_taxonomy_get_instances();
+
+  // Get the markers
+  $gmap_taxonomy_markers = gmap_taxonomy_get_markers();
+
+  // If this node doesn't use taxonomy_term_reference fields at all, skip the rest.
+  if (!isset($gmap_taxonomy_fields[$node->type])) { return; }
+
+  // Loop through the page's terms and insert markers if applicable
+  foreach ($gmap_taxonomy_fields[$node->type] as $fieldname) {
+    // Get this node's field values for this field
+    $terms = field_get_items('node', $node, $fieldname, $node->language);
+
+    // Skip if term has no value
+    if (!$terms) { continue; }
+
+    // Otherwise loop through and set marker for term, if term has marker
+    foreach ($terms as $term) {
+      if (!isset($gmap_taxonomy_markers[$term['tid']])) { continue; }
+      // Insert to gmap_taxonomy table
       db_insert('gmap_taxonomy_node')
         ->fields(array(
           'nid' => $node->nid,
-          'tid' => $markertid,
-          'marker' => $marker,
+          'tid' => $term['tid'],
+          'marker' => $gmap_taxonomy_markers[$term['tid']],
         ))
         ->execute();
     }
@@ -212,6 +213,61 @@ function gmap_taxonomy_node_revision_delete($node) {
     ->execute();
 }
 */
+
+/**
+ * Get all gmap taxonomy markers
+ * Helper function to return cached version of gmap taxonomy markers from the database
+ * @return
+ *   Associative array of tid => marker.
+ */
+function gmap_taxonomy_get_markers() {
+  $gmap_taxonomy_markers = &drupal_static(__FUNCTION__);
+
+  if (!isset($gmap_taxonomy_markers)) {
+    if ($cache = cache_get('gmap_taxonomy_markers_data')) {
+      $gmap_taxonomy_markers = $cache->data;
+    }
+    else {
+      $gmap_taxonomy_markers = db_query('SELECT tid, marker FROM {gmap_taxonomy_term}')->fetchAllKeyed();
+      cache_set('gmap_taxonomy_markers_data', $gmap_taxonomy_markers, 'cache', CACHE_TEMPORARY);
+    }
+  }
+  return $gmap_taxonomy_markers;
+}
+
+/**
+ * Get fields that are using taxonomy_term_reference + gmap taxonomy
+ * Helper function to return cached version of fields using taxonomy_term_reference
+ * @return
+ *   Associative array keyed with node type and with values as array of field names.
+ */
+function gmap_taxonomy_get_instances() {
+  $gmap_taxonomy_fields = &drupal_static(__FUNCTION__);
+  // TODO: Could do something with the vid, but probably too much overhead to use it here
+  // as field_info_fields() only gives us machine names and gmap_taxonomy_vocabs only gives us vid
+  // $gmap_taxonomy_vocabs = variable_get('gmap_taxonomy_vocabs', array());
+
+  if (!isset($gmap_taxonomy_fields)) {
+    if ($cache = cache_get('gmap_taxonomy_fields_data')) {
+      $gmap_taxonomy_fields = $cache->data;
+    }
+    else {
+      $gmap_taxonomy_fields = array();
+      // get all field info
+      $fields = field_info_fields();
+      // loop through to get the ones of field type taxonomy_term_reference
+      foreach ($fields as $field) {
+        if ($field['type'] == 'taxonomy_term_reference') {
+          foreach ($field['bundles']['node'] as $node_type) {
+            $gmap_taxonomy_fields[$node_type][] = $field['field_name'];
+          }
+        }
+      }
+      cache_set('gmap_taxonomy_fields_data', $gmap_taxonomy_fields, 'cache', CACHE_TEMPORARY);
+    }
+  }
+  return $gmap_taxonomy_fields;
+}
 
 /**
  * Reassign markers associated with a term that's going away.

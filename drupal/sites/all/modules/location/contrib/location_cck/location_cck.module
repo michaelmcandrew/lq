@@ -163,6 +163,16 @@ function location_cck_field_insert($entity_type, $entity, $field, $instance, $la
       location_save_locations($items, $criteria);
     }
   }
+  elseif (!empty($items)) {
+    list($id, $vid, $bundle) = entity_extract_ids($entity_type, $entity);
+    // Store instances of locations by field name and vid.
+    $criteria = array(
+      'genid' => 'field:' . $field['field_name'] . ':' . $entity_type . ':' . $id,
+      'vid' => $vid ? $vid : $id,
+      'nid' => $id,
+    );
+    location_save_locations($items, $criteria);
+  }
 }
 
 /**
@@ -179,6 +189,16 @@ function location_cck_field_update($entity_type, $entity, $field, $instance, $la
       );
       location_save_locations($items, $criteria);
     }
+  }
+  elseif (!empty($items)) {
+    list($id, $vid, $bundle) = entity_extract_ids($entity_type, $entity);
+    // Store instances of locations by field name and vid.
+    $criteria = array(
+      'genid' => 'field:' . $field['field_name'] . ':' . $entity_type . ':' . $id,
+      'vid' => $vid ? $vid : $id,
+      'nid' => $id,
+    );
+    location_save_locations($items, $criteria);
   }
 }
 
@@ -200,6 +220,12 @@ function location_cck_field_delete($entity_type, $entity, $field, $instance, $la
       location_save_locations($locs, array('genid' => $genid));
     }
   }
+  else {
+    list($id, $vid, $bundle) = entity_extract_ids($entity_type, $entity);
+    $genid = 'field:' . $field['field_name'] . ':' . $entity_type . ':' . $id;
+    $locs = array();
+    location_save_locations($locs, array('genid' => $genid));
+  }
 }
 
 /**
@@ -208,6 +234,12 @@ function location_cck_field_delete($entity_type, $entity, $field, $instance, $la
 function location_cck_field_delete_revision($entity_type, $entity, $field, $instance, $langcode, &$items) {
   if ($entity_type == 'node') {
     $genid = 'cck:' . $field['field_name'] . ':' . $entity->vid;
+    $locs = array();
+    location_save_locations($locs, array('genid' => $genid));
+  }
+  else {
+    list($id, $vid, $bundle) = entity_extract_ids($entity_type, $entity);
+    $genid = 'field:' . $field['field_name'] . ':' . $entity_type . ':' . $id;
     $locs = array();
     location_save_locations($locs, array('genid' => $genid));
   }
@@ -224,19 +256,17 @@ function location_cck_field_validate($entity_type, $entity, $field, $instance, $
  * Implement hook_field_load().
  */
 function location_cck_field_load($entity_type, $entities, $field, $instances, $langcode, &$items, $age) {
-  if ($entity_type == 'node') {
-    foreach ($entities as $id => $entity) {
-      foreach ($items[$id] as $delta => $item) {
-        $location = array();
-        // Load the location if it exists.
-        // If we are previewing a new node it will not.
-        if (!empty($item['lid'])) {
-          $location = location_load_location($item['lid']);
-        }
-        // Combine the item with the location loaded from the database.
-        // This will allow $item to display in the case of previewing a node.
-        $items[$id][$delta] = array_merge($location, $item);
+  foreach ($entities as $id => $entity) {
+    foreach ($items[$id] as $delta => $item) {
+      $location = array();
+      // Load the location if it exists.
+      // If we are previewing a new node it will not.
+      if (!empty($item['lid'])) {
+        $location = location_load_location($item['lid']);
       }
+      // Combine the item with the location loaded from the database.
+      // This will allow $item to display in the case of previewing a node.
+      $items[$id][$delta] = array_merge($location, $item);
     }
   }
 }
@@ -364,7 +394,10 @@ function location_cck_field_widget_form(&$form, &$form_state, $field, $instance,
     $settings = $field['settings']['location_settings'];
 
     // Load location data for existing locations.
-    if (isset($items[$delta]['lid']) && $items[$delta]['lid']) {
+    if ($form_state['rebuild'] && !empty($form_state['values'][$field['field_name']][$langcode][$delta])) {
+      $location = $form_state['values'][$field['field_name']][$langcode][$delta];
+    }
+    elseif (isset($items[$delta]['lid']) && $items[$delta]['lid']) {
       $location = location_load_location($items[$delta]['lid']);
     }
     // Load location data passed by cck.
@@ -399,6 +432,8 @@ function location_cck_field_widget_form(&$form, &$form_state, $field, $instance,
 
     $element = array(
       '#type' => 'location_element',
+      '#has_garbage_value' => TRUE,
+      '#value' => '',
       '#title' => t($instance['label']),
       '#description' => t($instance['description']),
       '#required' => $instance['required'],
@@ -475,7 +510,12 @@ function theme_location_cck_field_map($variables) {
     $map['longitude'] = $markers[0]['longitude'];
     $map['markers'] = $markers;
     $map['id'] = gmap_get_auto_mapid();
-    $content = theme('gmap', array('element' => array('#gmap_settings' => $map)));
+    // Render a map element.
+    $location_map = array(
+      '#type' => 'gmap',
+      '#gmap_settings' => $map,
+    );
+    $content = drupal_render($location_map);
   }
 
   return $content;

@@ -1,5 +1,4 @@
 <?php
-// $Id: node.admin.inc,v 1.103 2010/12/09 02:16:21 dries Exp $
 
 /**
  * @file
@@ -122,10 +121,6 @@ function node_build_filter_query(SelectQueryInterface $query) {
   foreach ($filter_data as $index => $filter) {
     list($key, $value) = $filter;
     switch ($key) {
-      case 'term':
-        $alias = $query->join('taxonomy_index', 'ti', "n.nid = %alias.nid");
-        $query->condition($alias . '.tid', $value);
-        break;
       case 'status':
         // Note: no exploitable hole as $key/$value have already been checked when submitted
         list($key, $value) = explode('-', $value, 2);
@@ -388,9 +383,9 @@ function node_admin_nodes() {
     '#submit' => array('node_admin_nodes_submit'),
   );
 
-  // Enable language column if translation module is enabled
-  // or if we have any node with language.
-  $multilanguage = (module_exists('translation') || db_query("SELECT COUNT(*) FROM {node} WHERE language <> :language", array(':language' => LANGUAGE_NONE))->fetchField());
+  // Enable language column if translation module is enabled or if we have any
+  // node with language.
+  $multilanguage = (module_exists('translation') || db_query_range("SELECT 1 FROM {node} WHERE language <> :language", 0, 1, array(':language' => LANGUAGE_NONE))->fetchField());
 
   // Build the sortable table header.
   $header = array(
@@ -427,6 +422,7 @@ function node_admin_nodes() {
     ->fields('n',array('nid'))
     ->limit(50)
     ->orderByHeader($header)
+    ->addTag('node_access')
     ->execute()
     ->fetchCol();
   $nodes = node_load_multiple($nids);
@@ -436,7 +432,8 @@ function node_admin_nodes() {
   $destination = drupal_get_destination();
   $options = array();
   foreach ($nodes as $node) {
-    $l_options = $node->language != LANGUAGE_NONE && isset($languages[$node->language]) ? array('language' => $languages[$node->language]) : array();
+    $langcode = entity_language('node', $node);
+    $l_options = $langcode != LANGUAGE_NONE && isset($languages[$langcode]) ? array('language' => $languages[$langcode]) : array();
     $options[$node->nid] = array(
       'title' => array(
         'data' => array(
@@ -453,11 +450,11 @@ function node_admin_nodes() {
       'changed' => format_date($node->changed, 'short'),
     );
     if ($multilanguage) {
-      if ($node->language == LANGUAGE_NONE || isset($languages[$node->language])) {
-        $options[$node->nid]['language'] = $node->language == LANGUAGE_NONE ? t('Language neutral') : t($languages[$node->language]->name);
+      if ($langcode == LANGUAGE_NONE || isset($languages[$langcode])) {
+        $options[$node->nid]['language'] = $langcode == LANGUAGE_NONE ? t('Language neutral') : t($languages[$langcode]->name);
       }
       else {
-        $options[$node->nid]['language'] = t('Undefined language (@langcode)', array('@langcode' => $node->language));
+        $options[$node->nid]['language'] = t('Undefined language (@langcode)', array('@langcode' => $langcode));
       }
     }
     // Build a list of all the accessible operations for the current node.

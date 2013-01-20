@@ -1,10 +1,46 @@
 <?php
-// $Id: wysiwyg.module,v 1.51 2011/01/06 01:43:26 sun Exp $
 
 /**
  * @file
- * Integrate client-side editors with Drupal.
+ * Integrates client-side editors with Drupal.
  */
+
+/**
+ * Implements hook_entity_info().
+ */
+function wysiwyg_entity_info() {
+  $types['wysiwyg_profile'] = array(
+    'label' => t('Wysiwyg profile'),
+    'base table' => 'wysiwyg',
+    'controller class' => 'WysiwygProfileController',
+    'fieldable' => FALSE,
+    // When loading all entities, DrupalDefaultEntityController::load() ignores
+    // its static cache. Therefore, wysiwyg_profile_load_all() implements a
+    // custom static cache.
+    'static cache' => FALSE,
+    'entity keys' => array(
+      'id' => 'format',
+    ),
+  );
+  return $types;
+}
+
+/**
+ * Controller class for Wysiwyg profiles.
+ */
+class WysiwygProfileController extends DrupalDefaultEntityController {
+  /**
+   * Overrides DrupalDefaultEntityController::attachLoad().
+   */
+  function attachLoad(&$queried_entities, $revision_id = FALSE) {
+    // Unserialize the profile settings.
+    foreach ($queried_entities as $key => $record) {
+      $queried_entities[$key]->settings = unserialize($record->settings);
+    }
+    // Call the default attachLoad() method.
+    parent::attachLoad($queried_entities, $revision_id);
+  }
+}
 
 /**
  * Implementation of hook_menu().
@@ -43,14 +79,29 @@ function wysiwyg_menu() {
     'type' => MENU_LOCAL_TASK,
     'weight' => 10,
   );
+  // @see wysiwyg_dialog()
   $items['wysiwyg/%'] = array(
     'page callback' => 'wysiwyg_dialog',
     'page arguments' => array(1),
+    'delivery callback' => 'wysiwyg_deliver_dialog_page',
     'access arguments' => array('access content'),
     'type' => MENU_CALLBACK,
     'file' => 'wysiwyg.dialog.inc',
   );
   return $items;
+}
+
+/**
+ * Implements hook_element_info().
+ */
+function wysiwyg_element_info() {
+  // @see wysiwyg_dialog()
+  $types['wysiwyg_dialog_page'] = array(
+    '#theme' => 'wysiwyg_dialog_page',
+    '#theme_wrappers' => array('html'),
+    '#show_messages' => TRUE,
+  );
+  return $types;
 }
 
 /**
@@ -67,8 +118,9 @@ function wysiwyg_theme() {
     'wysiwyg_admin_button_table' => array(
       'render element' => 'form',
     ),
+    // @see wysiwyg_dialog()
     'wysiwyg_dialog_page' => array(
-      'variables' => array('content' => NULL, 'show_messages' => TRUE),
+      'render element' => 'page',
       'file' => 'wysiwyg.dialog.inc',
       'template' => 'wysiwyg-dialog-page',
     ),
@@ -81,7 +133,7 @@ function wysiwyg_theme() {
 function wysiwyg_help($path, $arg) {
   switch ($path) {
     case 'admin/config/content/wysiwyg':
-      $output = '<p>' . t('A Wysiwyg profile is associated with an input format. A Wysiwyg profile defines which client-side editor is loaded with a particular input format, what buttons or themes are enabled for the editor, how the editor is displayed, and a few other editor-specific functions.') . '</p>';
+      $output = '<p>' . t('A Wysiwyg profile is associated with a text format. A Wysiwyg profile defines which client-side editor is loaded with a particular text format, what buttons or themes are enabled for the editor, how the editor is displayed, and a few other editor-specific functions.') . '</p>';
       return $output;
   }
 }
@@ -113,6 +165,11 @@ function wysiwyg_pre_render_text_format($element) {
   // element. Skip this text format widget, if it contains no 'format' or when
   // the current user does not have access to edit the value.
   if (!isset($element['format']) || !empty($element['value']['#disabled'])) {
+    return $element;
+  }
+  // Allow modules to programmatically enforce no client-side editor by setting
+  // the #wysiwyg property to FALSE.
+  if (isset($element['#wysiwyg']) && !$element['#wysiwyg']) {
     return $element;
   }
 
@@ -245,6 +302,7 @@ function wysiwyg_get_profile($format) {
 function wysiwyg_load_editor($profile) {
   static $settings_added;
   static $loaded = array();
+  $path = drupal_get_path('module', 'wysiwyg');
 
   $name = $profile->editor;
   // Library files must be loaded only once.
@@ -252,6 +310,13 @@ function wysiwyg_load_editor($profile) {
     // Load editor.
     $editor = wysiwyg_get_editor($name);
     if ($editor) {
+      $default_library_options = array(
+        'type' => 'file',
+        'scope' => 'header',
+        'defer' => FALSE,
+        'cache' => TRUE,
+        'preprocess' => TRUE,
+      );
       // Determine library files to load.
       // @todo Allow to configure the library/execMode to use.
       if (isset($profile->settings['library']) && isset($editor['libraries'][$profile->settings['library']])) {
@@ -264,9 +329,33 @@ function wysiwyg_load_editor($profile) {
         $files = array_shift($editor['libraries']);
         $files = $files['files'];
       }
+
+      // Check whether the editor requires an initialization script.
+      if (!empty($editor['init callback'])) {
+        $init = $editor['init callback']($editor, $library, $profile);
+        if (!empty($init)) {
+          // Build a file for each of the editors to hold the init scripts.
+          // @todo Aggregate all initialization scripts into one file.
+          $uri = 'public://js/wysiwyg/wysiwyg_' . $name . '_' . drupal_hash_base64($init) . '.js';
+          $init_exists = file_exists($uri);
+          if (!$init_exists) {
+            $js_path = dirname($uri);
+            file_prepare_directory($js_path, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
+          }
+          // Attempt to create the file, or fall back to an inline script (which
+          // will not work in Ajax calls).
+          if (!$init_exists && !file_unmanaged_save_data($init, $uri, FILE_EXISTS_REPLACE)) {
+            drupal_add_js($init, array('type' => 'inline') + $default_library_options);
+          }
+          else {
+            drupal_add_js(file_create_url($uri), $default_library_options);
+          }
+        }
+      }
+
       foreach ($files as $file => $options) {
         if (is_array($options)) {
-          $options += array('type' => 'file', 'scope' => 'header', 'defer' => FALSE, 'cache' => TRUE, 'preprocess' => TRUE);
+          $options += $default_library_options;
           drupal_add_js($editor['library path'] . '/' . $file, $options);
         }
         else {
@@ -294,17 +383,6 @@ function wysiwyg_load_editor($profile) {
       foreach ($files as $file) {
         drupal_add_css($editor['css path'] . '/' . $file);
       }
-
-      drupal_add_js(array('wysiwyg' => array(
-        'configs' => array($editor['name'] => array('global' => array(
-          // @todo Move into (global) editor settings.
-          // If JS compression is enabled, at least TinyMCE is unable to determine
-          // its own base path and exec mode since it can't find the script name.
-          'editorBasePath' => base_path() . $editor['library path'],
-          'execMode' => $library,
-        ))),
-      )), 'setting');
-
       $loaded[$name] = TRUE;
     }
     else {
@@ -321,7 +399,6 @@ function wysiwyg_load_editor($profile) {
       'enable' => t('Enable rich-text'),
     )), 'setting');
 
-    $path = drupal_get_path('module', 'wysiwyg');
     // Initialize our namespaces in the *header* to do not force editor
     // integration scripts to check and define Drupal.wysiwyg on its own.
     drupal_add_js($path . '/wysiwyg.init.js', array('group' => JS_LIBRARY));
@@ -578,7 +655,10 @@ function wysiwyg_get_css() {
   $files = array();
   foreach (drupal_add_css() as $filepath => $info) {
     if ($info['group'] >= CSS_THEME && $info['media'] != 'print') {
-      if (file_exists($filepath)) {
+      if ($info['type'] == 'external') {
+        $files[] = $filepath;
+      }
+      elseif (file_exists($filepath)) {
         $files[] = base_path() . $filepath;
       }
     }
@@ -587,42 +667,56 @@ function wysiwyg_get_css() {
 }
 
 /**
- * Load profile for a given input format.
+ * Loads a profile for a given text format.
+ *
+ * Since there are commonly not many text formats, and each text format-enabled
+ * form element will possibly have to load every single profile, all existing
+ * profiles are loaded and cached once to reduce the amount of database queries.
  */
 function wysiwyg_profile_load($format) {
-  static $profiles;
-
-  if ($cached = cache_get('wysiwyg_profiles')) {
-    $profiles = $cached->data;
-  }
-  else {
-    $result = db_query('SELECT format, editor, settings FROM {wysiwyg}');
-    foreach ($result as $profile) {
-      $profile->settings = unserialize($profile->settings);
-      $profiles[$profile->format] = $profile;
-    }
-    cache_set('wysiwyg_profiles', $profiles);
-  }
-
+  $profiles = wysiwyg_profile_load_all();
   return (isset($profiles[$format]) ? $profiles[$format] : FALSE);
 }
 
 /**
- * Load all profiles.
+ * Loads all profiles.
  */
 function wysiwyg_profile_load_all() {
-  static $profiles;
+  // entity_load(..., FALSE) does not re-use its own static cache upon
+  // repetitive calls, so a custom static cache is required.
+  // @see wysiwyg_entity_info()
+  $profiles = &drupal_static(__FUNCTION__);
 
   if (!isset($profiles)) {
-    $profiles = array();
-    $result = db_query('SELECT format, editor, settings FROM {wysiwyg}');
-    foreach ($result as $profile) {
-      $profile->settings = unserialize($profile->settings);
-      $profiles[$profile->format] = $profile;
+    // Additional database cache to support alternative caches like memcache.
+    if ($cached = cache_get('wysiwyg_profiles')) {
+      $profiles = $cached->data;
+    }
+    else {
+      $profiles = entity_load('wysiwyg_profile', FALSE);
+      cache_set('wysiwyg_profiles', $profiles);
     }
   }
 
   return $profiles;
+}
+
+/**
+ * Deletes a profile from the database.
+ */
+function wysiwyg_profile_delete($format) {
+  db_delete('wysiwyg')
+    ->condition('format', $format)
+    ->execute();
+}
+
+/**
+ * Clear all Wysiwyg profile caches.
+ */
+function wysiwyg_profile_cache_clear() {
+  entity_get_controller('wysiwyg_profile')->resetCache();
+  drupal_static_reset('wysiwyg_profile_load_all');
+  cache_clear_all('wysiwyg_profiles', 'cache');
 }
 
 /**
@@ -754,6 +848,7 @@ function wysiwyg_get_all_editors() {
       'libraries' => array(),
       'version callback' => NULL,
       'themes callback' => NULL,
+      'settings form callback' => NULL,
       'settings callback' => NULL,
       'plugin callback' => NULL,
       'plugin settings callback' => NULL,
@@ -1022,3 +1117,19 @@ function _wysiwyg_process_include($module, $identifier, $path, $hook) {
 /**
  * @} End of "defgroup wysiwyg_api".
  */
+
+/**
+ * Implements hook_features_api().
+ */
+function wysiwyg_features_api() {
+  return array(
+    'wysiwyg' => array(
+      'name' => t('Wysiwyg profiles'),
+      'default_hook' => 'wysiwyg_default_profiles',
+      'default_file' => FEATURES_DEFAULTS_INCLUDED,
+      'feature_source' => TRUE,
+      'file' => drupal_get_path('module', 'wysiwyg') . '/wysiwyg.features.inc',
+    ),
+  );
+}
+

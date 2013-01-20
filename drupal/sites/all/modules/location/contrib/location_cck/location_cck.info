@@ -7,9 +7,9 @@ files[] = location_cck.module
 files[] = location_cck.install
 
 
-; Information added by drupal.org packaging script on 2011-04-06
-version = "7.x-3.x-dev"
+; Information added by drupal.org packaging script on 2012-09-03
+version = "7.x-3.0-alpha1+1-dev"
 core = "7.x"
 project = "location"
-datestamp = "1302049006"
+datestamp = "1346676288"
 

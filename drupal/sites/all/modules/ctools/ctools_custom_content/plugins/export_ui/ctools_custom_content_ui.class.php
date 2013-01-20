@@ -3,6 +3,11 @@
 class ctools_custom_content_ui extends ctools_export_ui {
 
   function edit_form(&$form, &$form_state) {
+    // Correct for an error that came in because filter format changed.
+    if (is_array($form_state['item']->settings['body'])) {
+      $form_state['item']->settings['format'] = $form_state['item']->settings['body']['format'];
+      $form_state['item']->settings['body'] = $form_state['item']->settings['body']['value'];
+    }
     parent::edit_form($form, $form_state);
 
     $form['category'] = array(
@@ -98,12 +103,14 @@ class ctools_custom_content_ui extends ctools_export_ui {
         break;
     }
 
+    $ops = theme('links__ctools_dropbutton', array('links' => $operations, 'attributes' => array('class' => array('links', 'inline'))));
+
     $this->rows[$item->name] = array(
       'data' => array(
         array('data' => check_plain($item->name), 'class' => array('ctools-export-ui-name')),
         array('data' => check_plain($item->admin_title), 'class' => array('ctools-export-ui-title')),
         array('data' => check_plain($item->category), 'class' => array('ctools-export-ui-category')),
-        array('data' => theme('links', array('links' => $operations)), 'class' => array('ctools-export-ui-operations')),
+        array('data' => $ops, 'class' => array('ctools-export-ui-operations')),
       ),
       'title' => check_plain($item->admin_description),
       'class' => array(!empty($item->disabled) ? 'ctools-export-ui-disabled' : 'ctools-export-ui-enabled'),

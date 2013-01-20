@@ -4,9 +4,9 @@ package = Administration
 core = 7.x
 configure = admin/config/front/settings
 
-; Information added by drupal.org packaging script on 2011-08-13
-version = "7.x-2.0"
+; Information added by drupal.org packaging script on 2011-10-27
+version = "7.x-2.1"
 core = "7.x"
 project = "front"
-datestamp = "1313268716"
+datestamp = "1319746532"
 

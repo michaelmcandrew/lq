@@ -4,7 +4,7 @@
  * @file
  * The functions in this file are the back end of ThemeKey.
  *
- * @author Markus Kalkbrenner | Cocomore AG
+ * @author Markus Kalkbrenner | bio.logis GmbH
  *   @see http://drupal.org/user/124705
  *
  * @author profix898
@@ -25,7 +25,7 @@
 function themekey_invoke_modules($hook) {
   $return = array();
   foreach (variable_get('themekey_modules', array('node')) as $module) {
-    if (module_exists($module) && is_readable(drupal_get_path('module', 'themekey') .'/modules/themekey.' . $module .'.inc')) {
+    if (module_exists($module) && is_readable(drupal_get_path('module', 'themekey') . '/modules/themekey.' . $module . '.inc')) {
       require_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'themekey') . '/modules/themekey.' . $module . '.inc';
 
       $function = 'themekey_' . $module . '_' . $hook;
@@ -62,21 +62,20 @@ function themekey_invoke_modules($hook) {
  *   boolean
  */
 function themekey_match_path($condition, &$parameters) {
+  global $language;
+  
+  // don't repeat alias detection for all rules during one page request
   static $alias_uri = '';
-
+  static $language_prefix = NULL;
+  
   if ('drupal:path' != $condition->property) {
     return FALSE;
   }
 
-  $get_q = $get_q_to_split = themekey_get_q();
-
-  if (!variable_get('themekey_path_case_sensitive', 0)) {
-    $condition->value = drupal_strtolower($condition->value);
-    $get_q_to_split = drupal_strtolower($get_q_to_split);
-  }
+  $get_q = themekey_get_q();
 
   $condition_parts = explode('/', $condition->value);
-  $get_q_parts = explode('/', $get_q_to_split);
+  $get_q_parts = explode('/', $get_q);
 
   $wildcards = themekey_match_path_parts($get_q_parts, $condition_parts);
   if (FALSE === $wildcards && module_exists('path')) {
@@ -89,17 +88,46 @@ function themekey_match_path($condition, &$parameters) {
         $alias_uri_parts = explode('?', $alias_uri);
         $alias_uri = $alias_uri_parts[0];
       }
+      
+      if (NULL === $language_prefix) {
+        if (drupal_multilingual() && LOCALE_LANGUAGE_NEGOTIATION_URL_PREFIX ==
+          variable_get('locale_language_negotiation_url_part', LOCALE_LANGUAGE_NEGOTIATION_URL_PREFIX)
+          && (array_key_exists('locale-url', variable_get('language_negotiation_language', array())) ||
+              array_key_exists('locale-url', variable_get('language_negotiation_language_content', array())))
+        ) {
+          $languages = language_list('enabled');
+          list($language_object, $alias_uri) = language_url_split_prefix($alias_uri, $languages[1]);
+          if ($language_object) {
+            $language_prefix = $language_object->prefix;
+          }
+          else {
+            $language_prefix = FALSE;
+          }
+        }
+        else {
+          // prevent multiple checks for prefixes
+          $language_prefix = FALSE;
+        }
+      }
+            
       // For $alias_uri != $_GET['q'] the page was requested using an
       // aliased path, otherwise get the path alias internally
       if ($alias_uri == $get_q) {
-        $alias_uri = drupal_get_path_alias($get_q);
+        $lang_code = NULL;
+        if (!empty($language->language) && LANGUAGE_NONE != $language->language) {
+          $lang_code = $language->language;
+        }
+        
+        $alias_uri = drupal_get_path_alias($get_q, $lang_code);
       }
     }
 
     if ($alias_uri != $get_q) {
-      $alias_parts = explode('/', $alias_uri);
-
-      $wildcards = themekey_match_path_parts($alias_parts, $condition_parts);
+      $wildcards = themekey_match_path_parts(explode('/', $alias_uri), $condition_parts);
+      if (FALSE === $wildcards && $language_prefix) {
+        // retry, because the rule might contain the path alias including the language prefix
+        $wildcards = themekey_match_path_parts(explode('/', $language_prefix . '/' . $alias_uri), $condition_parts);
+      }
     }
   }
 
@@ -150,6 +178,11 @@ function themekey_match_path_parts($path_parts, $condition_parts) {
         continue;
       }
       return FALSE;
+    }
+
+    if (!variable_get('themekey_path_case_sensitive', 0)) {
+      $part = drupal_strtolower($part);
+      $path_parts[$key] = drupal_strtolower($path_parts[$key]);
     }
 
     if ($part == $path_parts[$key] || $part == urldecode($path_parts[$key]) || $part == rawurldecode($path_parts[$key])) {
@@ -361,25 +394,34 @@ function themekey_match_condition($condition, &$parameters) {
           // Supported operators for condition check:
           // smaller ('<'), greater ('>'), equal ('='), not equal ('!'), regex match ('~')
           if ($condition->operator == '<' && $single_value >= $condition->value) {
-            return FALSE;
+            return FALSE; // all values need to not match
           }
           elseif ($condition->operator == '>' && $single_value <= $condition->value) {
-            return FALSE;
+            return FALSE; // all values need to not match
           }
           elseif ($condition->operator == '<=' && $single_value > $condition->value) {
-            return FALSE;
+            return FALSE; // all values need to not match
           }
           elseif ($condition->operator == '>=' && $single_value < $condition->value) {
-            return FALSE;
+            return FALSE; // all values need to not match
           }
           elseif ($condition->operator == '=' && $single_value == $condition->value) {
             return TRUE;
           }
           elseif ($condition->operator == '!' && $single_value == $condition->value) {
-            return FALSE;
+            return FALSE; // all values need to not match
+          }
+          elseif ($condition->operator == '*' && strpos($single_value, $condition->value) !== FALSE) {
+            return TRUE;
+          }
+          elseif ($condition->operator == '!*' && strpos($single_value, $condition->value) !== FALSE) {
+            return FALSE; // all values need to not match
           }
           elseif ($condition->operator == '~' && preg_match($condition->value, $single_value)) {
             return TRUE;
+          }
+          elseif ($condition->operator == '!~' && preg_match($condition->value, $single_value)) {
+            return FALSE; // all values need to not match
           }
         }
         else {
@@ -388,7 +430,7 @@ function themekey_match_condition($condition, &$parameters) {
         }
       }
 
-      if ($condition->operator == '=' || $condition->operator == '~') {
+      if ($condition->operator == '=' || $condition->operator == '~' || $condition->operator == '*' ) {
         // no value matched
         return FALSE;
       }

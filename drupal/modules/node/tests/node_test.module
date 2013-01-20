@@ -1,5 +1,4 @@
 <?php
-// $Id: node_test.module,v 1.14 2010/11/30 19:31:46 dries Exp $
 
 /**
  * @file
@@ -148,5 +147,15 @@ function node_test_node_update($node) {
     if ($node->original->title != $node->title) {
       $node->title .= '_update';
     }
+  }
+}
+
+/**
+ * Implements hook_entity_view_mode_alter().
+ */
+function node_test_entity_view_mode_alter(&$view_mode, $context) {
+  // Only alter the view mode if we are on the test callback.
+  if ($change_view_mode = variable_get('node_test_change_view_mode', '')) {
+    $view_mode = $change_view_mode;
   }
 }

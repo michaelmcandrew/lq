@@ -64,6 +64,7 @@ function ctools_plugin_api_info($owner, $api, $minimum_version, $current_version
     foreach (module_implements($hook) as $module) {
       $function = $module . '_' . $hook;
       $info = $function($owner, $api);
+      $version = NULL;
       // This is added to make hook_views_api() compatible with this, since
       // views used a different version key.
       if (isset($info['version'])) {
@@ -107,6 +108,9 @@ function ctools_plugin_api_info($owner, $api, $minimum_version, $current_version
         }
       }
     }
+
+    // Allow other modules to hook in.
+    drupal_alter($hook, $cache[$owner][$api]);
   }
 
   return $cache[$owner][$api];
@@ -143,10 +147,10 @@ function ctools_plugin_api_include($owner, $api, $minimum_version, $current_vers
   foreach ($info as $module => $plugin_info) {
     if (!isset($already_done[$owner][$api][$module])) {
       if (isset($plugin_info["$api file"])) {
-        $file = isset($plugin_info["$api file"]);
+        $file = $plugin_info["$api file"];
       }
       else if (isset($plugin_info['file'])) {
-        $file = isset($plugin_info['file']);
+        $file = $plugin_info['file'];
       }
       else {
         $file = "$module.$api.inc";
@@ -156,7 +160,7 @@ function ctools_plugin_api_include($owner, $api, $minimum_version, $current_vers
         require_once DRUPAL_ROOT . "/$plugin_info[path]/$file";
       }
       else if (file_exists(DRUPAL_ROOT . "/$file")) {
-        require_once DRUPAL_ROOT . "/$plugin_info[path]/$file";
+        require_once DRUPAL_ROOT . "/$file";
       }
       $already_done[$owner][$api][$module] = TRUE;
     }
@@ -271,7 +275,9 @@ function ctools_get_plugins($module, $type, $id = NULL) {
       // If a plugin supports children, go through each plugin and ask.
       $temp = array();
       foreach ($plugins[$module][$type] as $name => $plugin) {
-        if (!empty($plugin['get children']) && function_exists($plugin['get children'])) {
+        // The strpos ensures that we don't try to find children for plugins
+        // that are already children.
+        if (!empty($plugin['get children']) && function_exists($plugin['get children']) && strpos($name, ':') === FALSE) {
           $temp = array_merge($plugin['get children']($plugin, $name), $temp);
         }
         else {
@@ -369,6 +375,7 @@ function ctools_plugin_get_plugin_type_info($flush = FALSE) {
           'use hooks' => FALSE,
           'defaults' => array(),
           'process' => '',
+          'alterable' => TRUE,
           'extension' => 'inc',
           'info file' => FALSE,
           'hook' => $module . '_' . $plugin_type_name,
@@ -387,6 +394,7 @@ function ctools_plugin_get_plugin_type_info($flush = FALSE) {
  * Reset all static caches that affect the result of ctools_get_plugins().
  */
 function ctools_get_plugins_reset() {
+  drupal_static_reset('ctools_plugins');
   drupal_static_reset('ctools_plugin_setup');
   drupal_static_reset('ctools_plugin_load_includes');
   drupal_static_reset('ctools_plugin_api_info');
@@ -404,7 +412,7 @@ function ctools_get_plugins_reset() {
  *   An array of information created for this plugin.
  */
 function ctools_plugin_load_includes($info, $filename = NULL) {
-  // Keep a static array so we don't hit drupal_system_listing more than necessary.
+  // Keep a static array so we don't hit file_scan_directory more than necessary.
   $all_files = &drupal_static(__FUNCTION__, array());
 
   // store static of plugin arrays for reference because they can't be reincluded.
@@ -435,7 +443,7 @@ function ctools_plugin_load_includes($info, $filename = NULL) {
       $extension = empty($info['info file']) ? $info['extension'] : 'info';
 
       foreach ($directories as $module => $path) {
-        $all_files[$info['module']][$info['type']][$module] = drupal_system_listing('/\.' . $extension . '$/', $path, 'name', 0);
+        $all_files[$info['module']][$info['type']][$module] = file_scan_directory($path, '/\.' . $extension . '$/', array('key' => 'name'));
       }
 
       cache_set("ctools_plugin_files:$info[module]:$info[type]", $all_files[$info['module']][$info['type']]);
@@ -709,9 +717,19 @@ function _ctools_process_data($result, $plugin_type_info, $module, $path, $file)
       }
     }
 
+    // Allow the plugin to be altered before processing.
+    if (!empty($plugin_type_info['alterable']) && $plugin_type_info['alterable']) {
+      drupal_alter('ctools_plugin_pre', $result[$name], $plugin_type_info);
+    }
+
     // Allow the plugin owner to do additional processing.
     if (!empty($plugin_type_info['process']) && $function = ctools_plugin_get_function($plugin_type_info, 'process')) {
       $function($result[$name], $plugin_type_info);
+    }
+
+    // Allow the plugin to be altered after processing.
+    if (!empty($plugin_type_info['alterable']) && $plugin_type_info['alterable']) {
+      drupal_alter('ctools_plugin_post', $result[$name], $plugin_type_info);
     }
   }
   return $result;

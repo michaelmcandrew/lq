@@ -269,6 +269,9 @@ class RulesState {
    *
    * @param $selector
    *   The selector string, e.g. "node:author:mail".
+   * @param $langcode
+   *   (optional) The language code used to get the argument value if the
+   *   argument value should be translated. Defaults to LANGUAGE_NONE.
    *
    * @return EntityMetadataWrapper
    *   The wrapper for the given selector.
@@ -276,7 +279,7 @@ class RulesState {
    * @throws RulesEvaluationException
    *   Throws a RulesEvaluationException in case the selector cannot be applied.
    */
-  public function applyDataSelector($selector) {
+  public function applyDataSelector($selector, $langcode = LANGUAGE_NONE) {
     $parts = explode(':', str_replace('-', '_', $selector), 2);
     $wrapper = $this->get($parts[0]);
     if (count($parts) == 1) {
@@ -288,17 +291,17 @@ class RulesState {
     try {
       foreach (explode(':', $parts[1]) as $name) {
         if ($wrapper instanceof EntityListWrapper || $wrapper instanceof EntityStructureWrapper) {
+          // Make sure we are usign the right language. Wrappers might be cached
+          // and have previous langcodes set, so always set the right language.
+          if ($wrapper instanceof EntityStructureWrapper) {
+            $wrapper->language($langcode);
+          }
           $wrapper = $wrapper->get($name);
         }
         else {
           throw new RulesEvaluationException('Unable to apply data selector %selector. The specified variable is not a list or a structure: %wrapper.', array('%selector' => $selector, '%wrapper' => $wrapper));
         }
       }
-      // Try accessing the data value immediately, so we can provide a
-      // reasonable error message in case it fails. If the wrapper wraps an
-      // entity make sure to not issue an eventually unnecessary entity_load()
-      // though.
-      $wrapper->value(array('identifier' => TRUE));
     }
     catch (EntityMetadataWrapperException $e) {
       // In case of an exception, re-throw it.

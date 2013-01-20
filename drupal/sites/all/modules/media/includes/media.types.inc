@@ -9,6 +9,57 @@
  */
 
 /**
+ * Implements hook_file_type_info().
+ */
+function media_file_type_info() {
+  $types = array();
+  foreach (media_type_get_types() as $type => $type_object) {
+    $types[$type] = array(
+      'label' => $type_object->label,
+      'weight' => $type_object->weight,
+      'claim callback' => 'media_file_type_media_claim',
+      'default view callback' => 'media_file_type_media_default_view',
+    );
+  }
+  return $types;
+}
+
+/**
+ * Implements hook_file_type_TYPE_claim().
+ *
+ * Returns TRUE if the passed in file should be assigned the passed in type.
+ */
+function media_file_type_media_claim($file, $type) {
+  if (($type_object = media_type_load($type)) && ($function = $type_object->type_callback) && function_exists($function) && $function($file, $type_object->type_callback_args)) {
+    return TRUE;
+  }
+}
+
+/**
+ * Implements hook_file_type_TYPE_default_view().
+ *
+ * Returns a drupal_render() array for displaying the file when there are no
+ * administrator-configured formatters, or none of the configured ones return a
+ * display.
+ */
+function media_file_type_media_default_view($file, $view_mode, $langcode) {
+  // During preview, or when custom attribute values are needed on the displayed
+  // element, use a media icon.
+  if ($view_mode == 'media_preview' || isset($file->override)) {
+    return array(
+      '#theme' => 'media_formatter_large_icon',
+      '#file' => $file,
+    );
+  }
+
+  // Finally, fall back to File module's generic file display.
+  return array(
+    '#theme' => 'file_link',
+    '#file' => $file,
+  );
+}
+
+/**
  *  Update an existing media type or create a new one.
  *
  *  The default media types are currently 'Audio', 'Image', 'Video', and
@@ -40,8 +91,6 @@ function media_type_save(&$type) {
     ->fields((array)$type)
   ->execute();
 
-  media_type_configure_fields($type);
-
   // Clear the caches
   drupal_static_reset('media_type_get_types');
   drupal_static_reset('media_type_get_mime_map');
@@ -49,37 +98,11 @@ function media_type_save(&$type) {
 }
 
 /**
- * Assigns formatters to view_modes for the file field of a media type.
- *
- * Each media type contains a field called "file" and certain stock view modes.
- * This function will assign a format to each view mode. For instance, images
- * would want to use a thumbnail format for files when in the "preview"
- * view_mode.  The called would pass in 'image' for $name and
- * array('media_preview' => 'styles_file_square_thumbnail') to $view_modes_to_formatters.
- *
- * This will also set the "custom_settings" bit to make sure it actually takes effect.
- *
- * @param string $name
- * @param array $view_modes_to_formatters
- * @throws Exception
- * @return void
+ * @todo Remove this function after ensuring that nothing (including update
+ *   functions) call it. It is deprecated with the change from media entity
+ *   containing a file field to just a file entity.
  */
 function media_type_configure_formatters($name, $view_modes_to_formatters) {
-  $instance = field_info_instance('media', 'file', $name);
-  $bundle_settings = field_bundle_settings('media', $name);
-
-  if (!$instance) {
-    throw new Exception('Unable to set formatter preferences for '. $name);
-  }
-  foreach ($view_modes_to_formatters as $view_mode => $formatter) {
-    $bundle_settings['view_modes'][$view_mode]['custom_settings'] = 1;
-    if (!isset($instance['display'][$view_mode])) {
-      $instance['display'][$view_mode] = $instance['display']['default'];
-    }
-    $instance['display'][$view_mode]['type'] = $formatter;
-  }
-  field_bundle_settings('media', $name, $bundle_settings);
-  field_update_instance($instance);
 }
 
 /**
@@ -92,58 +115,6 @@ function media_type_load($name) {
   $types = media_type_get_types();
   if (isset($types[$name])) {
     return $types[$name];
-  }
-}
-
-/**
- * Sets up the default fields which a media type needs.
- *
- * Currently, this is just a "file" field which contains the reference to the actual file.
- * @TODO Do we also want to make the file 'description/caption' a field?
- *
- * @param StdClass $media_type
- * @return void
- */
-function media_type_configure_fields($media_type) {
-  $field = field_info_field('file');
-  $instance = field_info_instance('media', 'file', $media_type->name);
-
-  if (empty($field)) {
-    $field = array(
-      'field_name' => 'file',
-      'type' => 'file',
-    );
-    $field = field_create_field($field);
-  }
-
-  // Perhaps the file field exists already, if so skip.
-  if (empty($instance)) {
-    $weight = -5;
-    $instance = array(
-      'field_name' => 'file',
-      'entity_type' => 'media',
-      'bundle' => $media_type->name,
-      'label' => 'File',
-      'widget_type' => 'file_file',
-      'widget' => array(
-        'weight' => $weight,
-      ),
-      'required' => TRUE,
-      'locked' => TRUE,
-      'display' => array(
-        'media_preview' => array(
-          'label' => 'hidden',
-          'type' => 'file_default',
-          'weight' => $weight,
-        ),
-        'media_original' => array(
-          'label' => 'hidden',
-          'type' => 'file_default',
-          'weight' => $weight,
-        ),
-      ),
-    );
-    field_create_instance($instance);
   }
 }
 
@@ -175,7 +146,7 @@ function media_type_get_types() {
  *  Create the basic class and defaults for a media entity bundle type.
  */
 function media_type_set_defaults($info) {
-  $type = new StdClass();
+  $type = new stdClass();
 
   // This is used to filter a file to the proper bundle.
   $type->type_callback = 'media_is_type';
@@ -207,22 +178,22 @@ function media_get_type($file) {
 }
 
 /**
- * Default callback used to determine if a piece of media is of a given type.
+ * Default callback used to determine if a file is of a given type.
  *
  * @TODO: document 'any' and 'all' matching.
  *
- * @param $media
- *   The media file asset object.
+ * @param $file
+ *   The file object.
  * @param $args
  *
  * @return unknown_type
  */
-function media_is_type($media, $args) {
+function media_is_type($file, $args) {
   $match_type = !empty($args['match_type']) ? 'any' : $args['match_type'];
   $match_all = $match_type == 'all';
   if (!empty($args['mimetypes'])) {
     foreach ($args['mimetypes'] as $expression) {
-      if (preg_match($expression, $media->filemime)) {
+      if (preg_match($expression, $file->filemime)) {
         if (!$match_all) {
           return TRUE;
         }
@@ -235,7 +206,7 @@ function media_is_type($media, $args) {
   }
 
   if (!empty($args['extensions'])) {
-    if (in_array(pathinfo($media->uri, PATHINFO_EXTENSION), $args['extensions'])) {
+    if (in_array(pathinfo($file->uri, PATHINFO_EXTENSION), $args['extensions'])) {
       if (!$match_all) {
         return TRUE;
       }
@@ -251,17 +222,15 @@ function media_is_type($media, $args) {
 }
 
 /**
- * Implement hook_media_format_form_prepare_alter
+ * Implements hook_media_format_form_prepare_alter().
  */
-function media_media_format_form_prepare_alter(&$form, &$form_state, $media) {
-  switch($media->type) {
+function media_media_format_form_prepare_alter(&$form, &$form_state, $file) {
+  switch ($file->type) {
     case 'image':
-      // @TODO: Isn't there a $file->description?
-      $description = $media->filename;
       $form['options']['alt'] = array(
         '#type' => 'textfield',
         '#title' => t('Description'),
-        '#default_value' => $description,
+        '#default_value' => $file->filename,
         '#description' => t('Alternate text a user will see if the image is not available'),
       );
       break;
@@ -273,7 +242,7 @@ function media_media_format_form_prepare_alter(&$form, &$form_state, $media) {
  */
 function media_type_invalid_files_count() {
   return db_select('file_managed', 'fm')
-    ->condition('type', NULL)
+    ->condition('type', FILE_TYPE_NONE)
     ->countQuery()
     ->execute()
     ->fetchField();
@@ -293,12 +262,12 @@ function media_type_invalid_files_count() {
  */
 function media_type_batch_update($update_existing = FALSE, $no_to_update = NULL, $offset = 0) {
   $results = array();
-  
+
   $query = db_select('file_managed', 'fm')
     ->fields('fm', array('fid'));
 
   if (!$update_existing) {
-    $query->condition('type', NULL);
+    $query->condition('type', FILE_TYPE_NONE);
   }
 
   if ($no_to_update) {
@@ -314,10 +283,39 @@ function media_type_batch_update($update_existing = FALSE, $no_to_update = NULL,
     if (!$file->fid) {
       throw new Exception('Unable to continue, file was not loaded.');
     }
-    $file->type = media_get_type($file);
     file_save($file);
     $results[] = $fid;
   }
 
   return $results;
+}
+
+/**
+ * Implements hook_file_default_displays().
+ *
+ * Provides default display configurations for media types.
+ *
+ * @see file_entity_schema()
+ */
+function media_file_default_displays() {
+  $default_displays = array();
+
+  $default_image_styles = array(
+    'media_preview' => 'square_thumbnail',
+    'media_large' => 'large',
+    'media_original' => ''
+  );
+
+  foreach ($default_image_styles as $view_mode => $image_style) {
+    $display_name = 'image__' . $view_mode . '__file_image';
+    $default_displays[$display_name] = (object) array(
+      'api_version' => 1,
+      'name' => $display_name,
+      'status' => 1,
+      'weight' => 5,
+      'settings' => array('image_style' => $image_style),
+    );
+  }
+
+  return $default_displays;
 }

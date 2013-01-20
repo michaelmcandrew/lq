@@ -1,9 +1,8 @@
 <?php
-// $Id: statistics.install,v 1.29 2011/01/02 17:26:39 webchick Exp $
 
 /**
  * @file
- * Install, update and uninstall functions for the statistics module.
+ * Install, update, and uninstall functions for the Statistics module.
  */
 
 /**
@@ -155,5 +154,5 @@ function statistics_update_7000() {
 }
 
 /**
- * @} End of "addtogroup updates-6.x-to-7.x"
+ * @} End of "addtogroup updates-6.x-to-7.x".
  */

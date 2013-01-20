@@ -61,7 +61,7 @@ function login_destination_menu() {
     'title' => 'Delete login destination rule',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('login_destination_delete_form', 5),
-    'access arguments' => array('administer userson'),
+    'access arguments' => array('administer users'),
     'file' => 'login_destination.admin.inc',
   );
   $items['admin/config/people/login-destination/list'] = array(
@@ -211,7 +211,8 @@ function login_destination_menu_link_alter(&$item) {
   // Flag a link to be altered by hook_translated_menu_link_alter().
   // This is called only on menu rebuild, so we have to add this information
   // manually to the database on install. Clearing caches also helps.
-  if ($item['link_path'] == 'user/logout' || $item['link_path'] == 'user') {
+  $paths = array('user/logout', 'user/login', 'user');
+  if (in_array($item['link_path'], $paths)) {
     $item['options']['alter'] = TRUE;
   }
 }
@@ -221,8 +222,9 @@ function login_destination_menu_link_alter(&$item) {
  */
 function login_destination_translated_menu_link_alter(&$item, $map) {
   global $user;
+  $paths = array('user/login', 'user');
   // Append the current path to URL.
-  if ($item['link_path'] == 'user/logout' || ($item['link_path'] == 'user' && user_is_anonymous())) {
+  if ($item['link_path'] == 'user/logout' || (in_array($item['link_path'], $paths) && user_is_anonymous())) {
     $item['localized_options']['query'] = array('current' => $_GET['q']);
   }
 }
@@ -290,7 +292,10 @@ function login_destination_drupal_goto_alter(&$path, &$options, &$http_response_
     // alter drupal_goto
     if (is_array($destination)) {
       $path = $destination[0];
-      $options = $destination[1];
+      $options = array();
+      if (count($destination) > 1) {
+        $options = $destination[1];
+      }
     }
     else {
       $path = $destination;
@@ -317,6 +322,7 @@ function login_destination_prepare_goto($destination) {
 function login_destination_perform_redirect($trigger = '', $current = NULL) {
   $destination = login_destination_get_destination($trigger, $current);
 
+  // Check if we redirect
   if ($destination !== FALSE) {
     login_destination_prepare_goto($destination);
   }
@@ -412,7 +418,7 @@ function _login_destination_match_rule($rule, $trigger = '', $current = NULL) {
   $roles = array_intersect_key(_login_destination_role_options(), $roles);
 
   // examine trigger match
-  if (!array_key_exists($trigger, $triggers)) {
+  if (!(empty($triggers) || array_key_exists($trigger, $triggers))) {
     return FALSE;
   }
 

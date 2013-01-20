@@ -7,7 +7,7 @@
 
 $plugin = array(
   'title' => t('Entity field'),
-  'defaults' => array('label' => '', 'formatter' => ''),
+  'defaults' => array('label' => 'title', 'formatter' => '', 'delta_limit' => 0, 'delta_offset' => '0', 'delta_reversed' => FALSE),
   'content type' => 'ctools_entity_field_content_type_content_type',
 );
 
@@ -29,8 +29,12 @@ function ctools_entity_field_content_type_content_type($subtype) {
  * Return all field content types available.
  */
 function ctools_entity_field_content_type_content_types() {
+  $types = &drupal_static(__FUNCTION__, array());
+  if (!empty($types)) {
+    return $types;
+  }
+
   // This will hold all the individual field content types.
-  $types = array();
   $context_types = array();
   $entities = entity_get_info();
 
@@ -41,16 +45,18 @@ function ctools_entity_field_content_type_content_types() {
           $types[$entity_type . ':' . $field_name] = array(
             'category' => t(ucfirst($entity_type)),
             'icon' => 'icon_field.png',
-            'title' => t('Field: @widget_label (@field_name) - @field_type', array(
+            'title' => t('Field: @widget_label (@field_name)', array(
               '@widget_label' => t($field['label']),
               '@field_name' => $field_name,
-              '@field_type' => t($field['widget']['type']),
             )),
             'description' => t('Field on the referenced entity.'),
             'edit form' => array(
               'ctools_entity_field_content_type_formatter_options' => array(
                 'default' => TRUE,
-                'title' => t('Formatter Options'),
+                'title' => t('Formatter options for: @widget_label (@field_name)', array(
+                  '@widget_label' => t($field['label']),
+                  '@field_name' => $field_name,
+                )),
               ),
               'ctools_entity_field_content_type_formatter_styles' => t('Formatter Styles'),
             ),
@@ -69,6 +75,7 @@ function ctools_entity_field_content_type_content_types() {
     ));
     unset($context_types[$key]['types']);
   }
+
   return $types;
 }
 
@@ -94,11 +101,71 @@ function ctools_entity_field_content_type_render($subtype, $conf, $panel_args, $
   }
   $language = field_language($entity_type, $entity, $field_name);
 
+  if (empty($conf['label']) || $conf['label'] == 'title') {
+    $label = 'hidden';
+    $conf['label'] = 'title';
+  }
+  else {
+    $label = $conf['label'];
+  }
+
+  $field_settings = array(
+    'label' => $label,
+    'type' => $conf['formatter'],
+  );
+
+  // Get the field output, and the title.
+  if (!empty($conf['formatter_settings'])) {
+    $field_settings['settings'] = $conf['formatter_settings'];
+  }
+
+  $all_values = field_get_items($entity_type, $entity, $field_name, $language);
+  if (!is_array($all_values)) {
+    $all_values = array();
+  }
+
+  // Reverse values.
+  if (isset($conf['delta_reversed']) && $conf['delta_reversed']) {
+    $all_values = array_reverse($all_values);
+  }
+
+  if (isset($conf['delta_limit'])) {
+    $delta_limit = $conf['delta_limit'];
+    $offset = intval($conf['delta_offset']);
+    $total = count($all_values);
+
+    if ($delta_limit == 0) {
+      $delta_limit = $total - $offset;
+    }
+
+    $new_values = array();
+    for ($i = 0; $i < $delta_limit; $i++) {
+      $new_delta = $offset + $i;
+
+      if (isset($all_values[$new_delta])) {
+        $new_values[] = $all_values[$new_delta];
+      }
+    }
+
+    $all_values = $new_values;
+  }
+
+  $clone = clone $entity;
+  $clone->{$field_name}[$language] = $all_values;
+  $field_output = field_view_field($entity_type, $clone, $field_name, $field_settings, $language);
+
+  if (!empty($field_output) && !empty($conf['override_title'])) {
+    $field_output['#title'] = filter_xss_admin($conf['override_title_text']);
+  }
+
   // Build the content type block.
   $block = new stdClass();
   $block->module  = 'entity_field';
-  $block->title   = $field['label'];
-  $block->content = field_view_field($entity_type, $entity, $field_name, ($conf['formatter_settings'] ? array('label' => 'hidden', 'type' => $conf['formatter'], 'settings' => $conf['formatter_settings']) : array('label' => 'hidden', 'type' => $conf['formatter'])), $language);
+  if ($conf['label'] == 'title' && isset($field_output['#title'])) {
+    $block->title = $field_output['#title'];
+  }
+
+  $block->content = $field_output;
   $block->delta   = $ids[0];
 
   return $block;
@@ -119,6 +186,20 @@ function ctools_entity_field_content_type_formatter_options($form, &$form_state)
   module_load_include('inc', 'field_ui', 'field_ui.admin');
   $formatter_options = field_ui_formatter_options($field['type']);
 
+  $field_label_options = array(
+    'title' => t('Pane title'),
+    'above' => t('Above'),
+    'inline' => t('Inline'),
+    'hidden' => t('Hidden'),
+  );
+
+  $form['label'] = array(
+    '#type' => 'select',
+    '#title' => t('Label'),
+    '#options' => $field_label_options,
+    '#default_value' => $conf['label'],
+  );
+
   $form['formatter'] = array(
     '#type' => 'select',
     '#title' => t('Select a formatter'),
@@ -131,6 +212,7 @@ function ctools_entity_field_content_type_formatter_options($form, &$form_state)
 
 function ctools_entity_field_content_type_formatter_options_submit($form, &$form_state) {
   $form_state['conf']['formatter'] = $form_state['values']['formatter'];
+  $form_state['conf']['label'] = $form_state['values']['label'];
 }
 
 function ctools_entity_field_content_type_formatter_styles($form, &$form_state) {
@@ -141,9 +223,10 @@ function ctools_entity_field_content_type_formatter_styles($form, &$form_state) 
   $subtype = $form_state['subtype_name'];
   list($entity_type, $field_name) = explode(':', $subtype, 2);
   $field = field_info_field($field_name);
-  module_load_include('inc', 'field_ui', 'field_ui.admin');
 
-  ctools_include('fields');
+  ctools_form_include($form_state, 'field_ui.admin', 'field_ui', '');
+  ctools_form_include($form_state, 'fields');
+
   $form['ctools_field_list'] = array(
     '#type' => 'value',
     '#value' => array(),
@@ -159,11 +242,17 @@ function ctools_entity_field_content_type_formatter_styles_submit($form, &$form_
   foreach ($formatter_info as $info) {
     if (!empty($info['settings'])) {
       foreach ($info['settings'] as $field_name => $value) {
-        if (!empty($form_state['values'][$field_name])) {
+        if (isset($form_state['values'][$field_name])) {
           $form_state['conf']['formatter_settings'][$field_name] = $form_state['values'][$field_name];
         }
       }
     }
+  }
+
+  if (isset($form_state['values']['delta_limit'])) {
+    $form_state['conf']['delta_limit'] = $form_state['values']['delta_limit'];
+    $form_state['conf']['delta_offset'] = $form_state['values']['delta_offset'];
+    $form_state['conf']['delta_reversed'] = $form_state['values']['delta_reversed'];
   }
 }
 
@@ -171,5 +260,7 @@ function ctools_entity_field_content_type_formatter_styles_submit($form, &$form_
 * Returns the administrative title for a type.
 */
 function ctools_entity_field_content_type_admin_title($subtype, $conf, $context) {
-  return t('"@s" @field', array('@s' => $context->identifier, '@field' => $subtype));
+  list($bundle, $field_name) = explode(':', $subtype);
+  ctools_include('fields');
+  return t('"@s" @field', array('@s' => $context->identifier, '@field' => ctools_field_label($field_name)));
 }

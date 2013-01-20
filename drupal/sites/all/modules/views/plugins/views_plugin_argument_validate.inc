@@ -1,22 +1,20 @@
 <?php
+
 /**
  * @file
  * Contains the base argument validator plugin.
  */
 
 /**
- * @defgroup views_argument_validate_plugins Views' argument validate plugins
+ * @defgroup views_argument_validate_plugins Views argument validate plugins
  * @{
- *
  * Allow specialized methods of validating arguments.
  *
- * @see hook_views_plugins
+ * @see hook_views_plugins()
  */
 
 /**
  * Base argument validator plugin to provide basic functionality.
- *
- * @ingroup views_argument_validate_plugins
  */
 class views_plugin_argument_validate extends views_plugin {
 
@@ -84,9 +82,18 @@ class views_plugin_argument_validate extends views_plugin {
   }
 
   function validate_argument($arg) { return TRUE; }
+
+  /**
+   * Process the summary arguments for displaying.
+   *
+   * Some plugins alter the argument so it uses something else interal.
+   * For example the user validation set's the argument to the uid,
+   * for a faster query. But there are use cases where you want to use
+   * the old value again, for example the summary.
+   */
+  function process_summary_arguments(&$args) { }
 }
 
 /**
  * @}
  */
-

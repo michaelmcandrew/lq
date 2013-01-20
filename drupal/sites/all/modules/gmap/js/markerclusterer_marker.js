@@ -17,6 +17,13 @@ Drupal.gmap.addHandler('gmap', function (elem) {
 
   obj.bind('init', function () {
     // Set up the markermanager.
+    // Make sure the gridSize and maxZoom are intergers.
+    if (Drupal.settings.gmap_markermanager.gridSize){
+      Drupal.settings.gmap_markermanager.gridSize = parseInt(Drupal.settings.gmap_markermanager.gridSize);
+    }
+    if (Drupal.settings.gmap_markermanager.maxZoom){
+      Drupal.settings.gmap_markermanager.maxZoom = parseInt(Drupal.settings.gmap_markermanager.maxZoom);
+    }
     obj.mc = new MarkerClusterer(obj.map, [], Drupal.settings.gmap_markermanager);
   });
   obj.bind('addmarker', function (marker) {

@@ -1,5 +1,4 @@
 <?php
-// $Id: dashboard.api.php,v 1.1 2009/10/18 11:20:26 dries Exp $
 
 /**
  * @file
@@ -12,7 +11,7 @@
  */
 
 /**
- * Adds regions to the dashboard.
+ * Add regions to the dashboard.
  *
  * @return
  *   An array whose keys are the names of the dashboard regions and whose

@@ -1,10 +1,8 @@
 <?php
-// $Id: book-node-export-html.tpl.php,v 1.2 2008/05/15 21:19:24 dries Exp $
 
 /**
  * @file
- * Default theme implementation for rendering a single node in a printer
- * friendly outline.
+ * Default theme implementation for a single node in a printer-friendly outline.
  *
  * @see book-node-export-html.tpl.php
  * Where it is collected and printed out.
@@ -16,6 +14,8 @@
  * - $children: All the child nodes recursively rendered through this file.
  *
  * @see template_preprocess_book_node_export_html()
+ *
+ * @ingroup themeable
  */
 ?>
 <div id="node-<?php print $node->nid; ?>" class="section-<?php print $depth; ?>">

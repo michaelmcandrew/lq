@@ -1,5 +1,4 @@
 <?php
-// $Id: iso.inc,v 1.13 2011/01/04 16:07:48 webchick Exp $
 
 /**
  * @file
@@ -75,6 +74,7 @@ function _country_get_predefined_list() {
     'CO' => $t('Colombia'),
     'CR' => $t('Costa Rica'),
     'CU' => $t('Cuba'),
+    'CW' => $t('Curaçao'),
     'CV' => $t('Cape Verde'),
     'CX' => $t('Christmas Island'),
     'CY' => $t('Cyprus'),
@@ -461,7 +461,7 @@ function _locale_get_predefined_list() {
     'tt' => array('Tatar', 'Tatarça'),
     'tw' => array('Twi'),
     'ty' => array('Tahitian'),
-    'ug' => array('Uighur'),
+    'ug' => array('Uyghur'),
     'uk' => array('Ukrainian', 'Українська'),
     'ur' => array('Urdu', /* Left-to-right marker "‭" */ 'اردو', LANGUAGE_RTL),
     'uz' => array('Uzbek', "o'zbek"),

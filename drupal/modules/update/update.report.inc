@@ -1,5 +1,4 @@
 <?php
-// $Id: update.report.inc,v 1.33 2010/10/03 22:43:16 dries Exp $
 
 /**
  * @file
@@ -7,7 +6,9 @@
  */
 
 /**
- * Menu callback. Generate a page about the update status of projects.
+ * Page callback: Generates a page about the update status of projects.
+ *
+ * @see update_menu()
  */
 function update_status() {
   if ($available = update_get_available(TRUE)) {
@@ -58,25 +59,25 @@ function theme_update_report($variables) {
     switch ($project['status']) {
       case UPDATE_CURRENT:
         $class = 'ok';
-        $icon = theme('image', array('path' => 'misc/watchdog-ok.png', 'alt' => t('ok'), 'title' => t('ok')));
+        $icon = theme('image', array('path' => 'misc/watchdog-ok.png', 'width' => 18, 'height' => 18, 'alt' => t('ok'), 'title' => t('ok')));
         break;
       case UPDATE_UNKNOWN:
       case UPDATE_FETCH_PENDING:
       case UPDATE_NOT_FETCHED:
         $class = 'unknown';
-        $icon = theme('image', array('path' => 'misc/watchdog-warning.png', 'alt' => t('warning'), 'title' => t('warning')));
+        $icon = theme('image', array('path' => 'misc/watchdog-warning.png', 'width' => 18, 'height' => 18, 'alt' => t('warning'), 'title' => t('warning')));
         break;
       case UPDATE_NOT_SECURE:
       case UPDATE_REVOKED:
       case UPDATE_NOT_SUPPORTED:
         $class = 'error';
-        $icon = theme('image', array('path' => 'misc/watchdog-error.png', 'alt' => t('error'), 'title' => t('error')));
+        $icon = theme('image', array('path' => 'misc/watchdog-error.png', 'width' => 18, 'height' => 18, 'alt' => t('error'), 'title' => t('error')));
         break;
       case UPDATE_NOT_CHECKED:
       case UPDATE_NOT_CURRENT:
       default:
         $class = 'warning';
-        $icon = theme('image', array('path' => 'misc/watchdog-warning.png', 'alt' => t('warning'), 'title' => t('warning')));
+        $icon = theme('image', array('path' => 'misc/watchdog-warning.png', 'width' => 18, 'height' => 18, 'alt' => t('warning'), 'title' => t('warning')));
         break;
     }
 
@@ -258,6 +259,7 @@ function theme_update_report($variables) {
  *   - status: The integer code for a project's current update status.
  *
  * @see update_calculate_project_data()
+ * @ingroup themeable
  */
 function theme_update_status_label($variables) {
   switch ($variables['status']) {

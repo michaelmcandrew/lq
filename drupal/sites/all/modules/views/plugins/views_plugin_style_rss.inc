@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Contains the RSS style plugin.
@@ -56,7 +57,7 @@ class views_plugin_style_rss extends views_plugin_style {
       '#title' => t('RSS description'),
       '#default_value' => $this->options['description'],
       '#description' => t('This will appear in the RSS feed itself.'),
-      '#dependency' => array('edit-style-options-override' => array(FALSE)),
+      '#maxlength' => 1024,
     );
   }
 
@@ -70,16 +71,31 @@ class views_plugin_style_rss extends views_plugin_style {
     return array();
   }
 
+  /**
+   * Get RSS feed description.
+   *
+   * @return string
+   *   The string containing the description with the tokens replaced.
+   */
+  function get_description() {
+    $description = $this->options['description'];
+
+    // Allow substitutions from the first row.
+    $description = $this->tokenize_value($description, 0);
+
+    return $description;
+  }
+
   function render() {
     if (empty($this->row_plugin)) {
-      debug('views_plugin_style_default: Missing row plugin');
+      vpr('views_plugin_style_default: Missing row plugin');
       return;
     }
     $rows = '';
 
     // This will be filled in by the row plugin and is used later on in the
     // theming output.
-    $this->namespaces = array();
+    $this->namespaces = array('xmlns:dc' => 'http://purl.org/dc/elements/1.1/');
 
     // Fetch any additional elements for the channel and merge in their
     // namespaces.
@@ -90,15 +106,18 @@ class views_plugin_style_rss extends views_plugin_style {
       }
     }
 
-    foreach ($this->view->result as $row) {
+    foreach ($this->view->result as $row_index => $row) {
+      $this->view->row_index = $row_index;
       $rows .= $this->row_plugin->render($row);
     }
 
-    return theme($this->theme_functions(),
+    $output = theme($this->theme_functions(),
       array(
         'view' => $this->view,
         'options' => $this->options,
         'rows' => $rows
       ));
+    unset($this->view->row_index);
+    return $output;
   }
 }

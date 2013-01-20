@@ -1,5 +1,4 @@
 <?php
-// $Id: overlay.tpl.php,v 1.5 2010/11/06 00:18:24 dries Exp $
 
 /**
  * @file
@@ -18,6 +17,8 @@
  * @see template_preprocess()
  * @see template_preprocess_overlay()
  * @see template_process()
+ *
+ * @ingroup themeable
  */
 ?>
 

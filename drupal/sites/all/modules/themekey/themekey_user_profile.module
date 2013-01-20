@@ -13,7 +13,7 @@
  * @see http://drupal.org/node/559306
  * @see http://drupal.org/node/1046214
  *
- * @author Markus Kalkbrenner | Cocomore AG
+ * @author Markus Kalkbrenner | bio.logis GmbH
  *   @see http://drupal.org/user/124705
  */
 
@@ -68,6 +68,7 @@ function themekey_user_profile_form_alter(&$form, $form_state, $form_id) {
         '#description' => t('A User is able to select a personal theme other than the default theme set by the site administrator.'),
       );
 
+      $form['#validate'][] = 'themekey_user_profile_themekey_ui_settings_form_validate';
       $form['#submit'][] = 'themekey_user_profile_form_alter_submit';
       break;
 
@@ -75,6 +76,20 @@ function themekey_user_profile_form_alter(&$form, $form_state, $form_id) {
       module_load_include('inc', 'themekey_user_profile', 'themekey_user_profile_help');
       themekey_user_profile_help_tutorials($form);
       break;
+  }
+}
+
+
+/**
+ * Validation of
+ * @see themekey_ui_settings_form()
+ */
+function themekey_user_profile_themekey_ui_settings_form_validate(&$form, $form_state) {
+  $selectable_themes = array_diff($form_state['values']['themekey_ui_selectable_themes'], array('0'));
+  if (empty($selectable_themes)) {
+    if ($form_state['values']['themekey_ui_user_profile']) {
+      form_set_error('themekey_ui_selectable_themes', t('You need to activate at least one selectable theme.'));
+    }
   }
 }
 

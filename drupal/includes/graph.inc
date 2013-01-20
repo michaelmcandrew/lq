@@ -1,14 +1,13 @@
 <?php
-// $Id: graph.inc,v 1.4 2010/04/22 19:21:12 dries Exp $
 
 /**
  * @file
- * Directed acyclic graph functions.
+ * Directed acyclic graph manipulation.
  */
 
 
 /**
- * Perform a depth first sort on a directed acyclic graph.
+ * Performs a depth-first search and sort on a directed acyclic graph.
  *
  * @param $graph
  *   A three dimensional associated array, with the first keys being the names
@@ -33,7 +32,7 @@
  *   @endcode
  *
  * @return
- *   The passed in $graph with more secondary keys filled in:
+ *   The passed-in $graph with more secondary keys filled in:
  *   - 'paths': Contains a list of vertices than can be reached on a path from
  *     this vertex.
  *   - 'reverse_paths': Contains a list of vertices that has a path from them
@@ -53,7 +52,7 @@ function drupal_depth_first_search(&$graph) {
     // The components of the graph.
     'components' => array(),
   );
-  // Perform the actual sort.
+  // Perform the actual search.
   foreach ($graph as $start => $data) {
     _drupal_depth_first_search($graph, $state, $start);
   }
@@ -73,17 +72,17 @@ function drupal_depth_first_search(&$graph) {
 }
 
 /**
- * Helper function to perform a depth first sort.
+ * Performs a depth-first search on a graph.
  *
- * @param &$graph
+ * @param $graph
  *   A three dimensional associated graph array.
- * @param &$state
+ * @param $state
  *   An associative array. The key 'last_visit_order' stores a list of the
  *   vertices visited. The key components stores list of vertices belonging
  *   to the same the component.
  * @param $start
  *   An arbitrary vertex where we started traversing the graph.
- * @param &$component
+ * @param $component
  *   The component of the last vertex.
  *
  * @see drupal_depth_first_search()
@@ -144,4 +143,3 @@ function _drupal_depth_first_search(&$graph, &$state, $start, &$component = NULL
   // topological order if the graph is acyclic.
   $state['last_visit_order'][] = $start;
 }
-

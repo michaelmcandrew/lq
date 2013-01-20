@@ -1,5 +1,4 @@
 <?php
-// $Id: comment-wrapper.tpl.php,v 1.2 2010/09/25 02:05:51 dries Exp $
 
 /**
  * @file
@@ -33,7 +32,6 @@
  *   into a string within the variable $classes.
  *
  * @see template_preprocess_comment_wrapper()
- * @see theme_comment_wrapper()
  */
 ?>
 <div id="comments" class="<?php print $classes; ?>"<?php print $attributes; ?>>

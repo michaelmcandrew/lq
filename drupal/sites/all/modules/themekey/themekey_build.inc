@@ -5,7 +5,7 @@
  * The functions in this file are the back end of ThemeKey which should be
  * used only if you configure something, but not when ThemeKey switches themes.
  *
- * @author Markus Kalkbrenner | Cocomore AG
+ * @author Markus Kalkbrenner | bio.logis GmbH
  *   @see http://drupal.org/user/124705
  *
  * @author profix898
@@ -284,13 +284,7 @@ function themekey_prepare_custom_path($path) {
  *   sorted array containing all ThemeKey rules
  */
 function themekey_load_rules($parent = 0, $depth = 0) {
-  static $properties = array();
-  static $parent_lookups = array();
-
-  if (isset($parent_lookups[$parent])) {
-    // prevent endless recursion in case of malformated data in database
-    return $properties;
-  }
+  $properties = array();
 
   $result = db_select('themekey_properties', 'tp')
     ->fields('tp')
@@ -304,9 +298,9 @@ function themekey_load_rules($parent = 0, $depth = 0) {
     }
     $item->depth = $depth;
     $properties[$item->id] = get_object_vars($item);
-    themekey_load_rules($item->id, $depth + 1);
-    $parent_lookups[$item->id] = TRUE;
+    $properties = $properties + themekey_load_rules($item->id, $depth + 1);
   }
+
   return $properties;
 }
 
@@ -328,8 +322,12 @@ function themekey_load_rules($parent = 0, $depth = 0) {
  *   - wildcards
  *   - parent
  *
+ * @param $module
+ *   name of the module that sets the item
+ *
+ * @throws ThemeKeyRuleConfictException
  */
-function themekey_rule_set(&$item) {
+function themekey_rule_set(&$item, $module = 'themekey') {
   if ('drupal:path' == $item['property']) {
     list($item['value'], $item['wildcards']) = themekey_prepare_custom_path($item['value']);
   }
@@ -337,11 +335,30 @@ function themekey_rule_set(&$item) {
     $item['wildcards'] = array();
   }
 
-  if (empty($item['id'])) {
+  if (empty($item['module'])) {
+    $item['module'] = trim($module);
+  }
 
-    // TRANSACTIONS - SEE http://drupal.org/node/355875
-    // The transaction opens here.
-    $txn = db_transaction();
+  // TRANSACTIONS - SEE http://drupal.org/node/355875
+  // The transaction opens here.
+  $txn = db_transaction();
+
+  if (empty($item['id'])) {
+    if ($item['enabled']) {
+      $id = db_select('themekey_properties', 'tp')
+        ->fields('tp', array('id'))
+        ->condition('property', $item['property'])
+        ->condition('operator', $item['operator'])
+        ->condition('value', $item['value'])
+        ->condition('parent', $item['parent'])
+        ->condition('enabled', 1)
+        ->execute()
+        ->fetchField();
+
+      if ($id) {
+        throw new ThemeKeyRuleConfictException(t('New rule conficts with an existing rule on the same level.'), $id);
+      }
+    }
 
     // new entry should be added at the end of the chain
     $result = db_select('themekey_properties', 'tp');
@@ -354,6 +371,23 @@ function themekey_rule_set(&$item) {
 
   }
   else {
+    if ($item['enabled']) {
+      $id = db_select('themekey_properties', 'tp')
+        ->fields('tp', array('id'))
+        ->condition('property', $item['property'])
+        ->condition('operator', $item['operator'])
+        ->condition('value', $item['value'])
+        ->condition('parent', $item['parent'])
+        ->condition('enabled', 1)
+        ->condition('id', $item['id'] , '<>')
+        ->execute()
+        ->fetchField();
+
+      if ($id) {
+        throw new ThemeKeyRuleConfictException(t('Updated rule conficts with an existing rule on the same level.'), $id);
+      }
+    }
+
     drupal_write_record('themekey_properties', $item, 'id');
   }
 
@@ -366,6 +400,8 @@ function themekey_rule_set(&$item) {
  *
  * @param $id
  *   id of the rule to be deleted from database
+ *
+ * @throws ThemeKeyRuleDeletionException
  */
 function themekey_rule_del($id) {
 
@@ -380,24 +416,48 @@ function themekey_rule_del($id) {
 
   if (FALSE !== $num_childs) {
     if ($num_childs > 0) {
-      drupal_set_message(t('ThemeKey rule could not be deleted because it has children in the chain'), 'error');
+      throw new ThemeKeyRuleDeletionException(t('ThemeKey rule could not be deleted because it has children in the chain'));
     }
     else {
       $result = db_delete('themekey_properties')
       ->condition('id', $id)
       ->execute();
       if (!$result) {
-        drupal_set_message(t('Error while deleting ThemeKey rule'), 'error');
+        throw new ThemeKeyRuleDeletionException(t('Error while deleting ThemeKey rule'));
+      }
+      else {
+        // $txn goes out of scope here, and the entire transaction commits.
+        return TRUE;
       }
     }
   }
   else {
-    drupal_set_message(t('Error while deleting ThemeKey rule'), 'error');
+    throw new ThemeKeyRuleDeletionException(t('Error while deleting ThemeKey rule'));
   }
-
-  // $txn goes out of scope here, and the entire transaction commits.
 }
 
+/**
+ * Disables a ThemeKey rule and all children.
+ *
+ * @param $id
+ *   id of the rule to be ddisabled
+ */
+function themekey_rule_disable($id) {
+  // TRANSACTIONS - SEE http://drupal.org/node/355875
+  // The transaction opens here.
+  $txn = db_transaction();
+
+  $childs = themekey_load_rules($id);
+  $ids = array_merge(array($id), array_keys($childs));
+  foreach ($ids as $id) {
+    db_update('themekey_properties')
+      ->fields(array(
+        'enabled' => 0,
+      ))
+      ->condition('id', $id)
+      ->execute();
+  }
+}
 
 /**
  * Loads ThemeKey rule from database.
@@ -445,11 +505,11 @@ function themekey_rule_get($id) {
  */
 function themekey_update_static_rule($property, $state) {
 
-  $id = db_select('themekey_properties', 'tp')
-    ->fields('tp', array('id'))
+  $existing_rule = db_select('themekey_properties', 'tp')
+    ->fields('tp', array('id', 'enabled', 'parent'))
     ->condition('property', $property)
     ->execute()
-    ->fetchField();
+    ->fetchAssoc();
 
 
   if ($state) {
@@ -460,18 +520,24 @@ function themekey_update_static_rule($property, $state) {
       'theme' => 'default',
     );
 
-    if ($id) {
-      $item['id'] = $id;
-      // leave 'enabled' as it is in database
+    if (!empty($existing_rule)) {
+      $item['id'] = $existing_rule['id'];
+      $item['enabled'] = $existing_rule['enabled'];
+      $item['parent'] = $existing_rule['parent'];
     }
     else {
       // enable new rule
       $item['enabled'] = 1;
+      $item['parent'] = 0;
     }
 
     themekey_rule_set($item);
   }
-  elseif ($id) {
-    themekey_rule_del($id);
+  elseif (!empty($existing_rule)) {
+    themekey_rule_del($existing_rule['id']);
   }
 }
+
+class ThemeKeyRuleConfictException extends Exception { }
+
+class ThemeKeyRuleDeletionException extends Exception { }

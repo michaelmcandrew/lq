@@ -1,4 +1,3 @@
-// $Id: profile.js,v 1.8 2010/01/30 07:59:25 dries Exp $
 (function ($) {
 
 /**
@@ -25,7 +24,7 @@ Drupal.behaviors.profileDrag = {
           }
         }
         // This category has become empty
-        if ($(this).next('tr').is(':not(.draggable)') || $(this).next('tr').size() == 0) {
+        if ($(this).next('tr').is(':not(.draggable)') || $(this).next('tr').length == 0) {
           $(this).removeClass('category-populated').addClass('category-empty');
         }
         // This category has become populated.

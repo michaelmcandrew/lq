@@ -5,7 +5,7 @@
  * Database schema of
  * @see themekey.module
  *
- * @author Markus Kalkbrenner | Cocomore AG
+ * @author Markus Kalkbrenner | bio.logis GmbH
  *   @see http://drupal.org/user/124705
  *
  * @author profix898
@@ -71,6 +71,13 @@ function themekey_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
+      ),
+      'module' => array(
+        'description' => 'The name of the module that created this entry.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
       ),
     ),
     'primary key' => array('id'),
@@ -533,3 +540,23 @@ function themekey_update_7102() {
   return t('Update of Themekey ran successfully');
 }
 
+
+/**
+ * Implements hook_update().
+ */
+function themekey_update_7103() {
+  db_add_field('themekey_properties', 'module', array(
+    'description' => 'The name of the module that created this entry.',
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => TRUE,
+    'default' => '',
+    )
+  );
+
+  db_update('themekey_properties')
+    ->fields(array('module' => 'themekey'))
+    ->execute();
+  
+  return t('Update of Themekey ran successfully');
+}

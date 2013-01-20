@@ -1,4 +1,3 @@
-// $Id: fckeditor.config.js,v 1.7 2009/09/29 01:48:23 sun Exp $
 
 Drupal = window.parent.Drupal;
 
@@ -38,6 +37,19 @@ for (var setting in wysiwygSettings) {
   }
   else {
     FCKConfig[setting] = wysiwygSettings[setting];
+  }
+}
+
+// Fix Drupal toolbar obscuring editor toolbar in fullscreen mode.
+var oldFitWindowExecute = FCKFitWindow.prototype.Execute;
+var $drupalToolbar = window.parent.jQuery('#toolbar', Drupal.overlayChild ? window.parent.window.parent.document : window.parent.document);
+FCKFitWindow.prototype.Execute = function() {
+  oldFitWindowExecute.apply(this, arguments);
+  if (this.IsMaximized) {
+    $drupalToolbar.hide();
+  }
+  else {
+    $drupalToolbar.show();
   }
 }
 

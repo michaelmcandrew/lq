@@ -1,5 +1,4 @@
 <?php
-// $Id: schema.inc,v 1.43 2010/12/29 04:03:42 webchick Exp $
 
 /**
  * @file
@@ -329,9 +328,9 @@ class DatabaseSchema_pgsql extends DatabaseSchema {
     // rename them when renaming the table.
     $indexes = $this->connection->query('SELECT indexname FROM pg_indexes WHERE schemaname = :schema AND tablename = :table', array(':schema' => $old_schema, ':table' => $old_table_name));
     foreach ($indexes as $index) {
-      if (preg_match('/^' . preg_quote($old_full_name) . '_(.*)_idx$/', $index->indexname, $matches)) {
+      if (preg_match('/^' . preg_quote($old_full_name) . '_(.*)$/', $index->indexname, $matches)) {
         $index_name = $matches[1];
-        $this->connection->query('ALTER INDEX ' . $index->indexname . ' RENAME TO {' . $new_name . '}_' . $index_name . '_idx');
+        $this->connection->query('ALTER INDEX ' . $index->indexname . ' RENAME TO {' . $new_name . '}_' . $index_name);
       }
     }
 
@@ -528,6 +527,9 @@ class DatabaseSchema_pgsql extends DatabaseSchema {
       $this->connection->query('ALTER TABLE {' . $table . '} DROP CONSTRAINT "' . $check . '"');
     }
 
+    // Remove old default.
+    $this->fieldSetNoDefault($table, $field);
+
     $this->connection->query('ALTER TABLE {' . $table . '} ALTER "' . $field . '" TYPE ' . $typecast . ' USING "' . $field . '"::' . $typecast);
 
     if (isset($spec['not null'])) {
@@ -560,6 +562,11 @@ class DatabaseSchema_pgsql extends DatabaseSchema {
     // Add unsigned check if necessary.
     if (!empty($spec['unsigned'])) {
       $this->connection->query('ALTER TABLE {' . $table . '} ADD CHECK ("' . $field_new . '" >= 0)');
+    }
+
+    // Add default if necessary.
+    if (isset($spec['default'])) {
+      $this->fieldSetDefault($table, $field_new, $spec['default']);
     }
 
     // Change description if necessary.

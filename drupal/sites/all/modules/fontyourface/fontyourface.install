@@ -6,9 +6,9 @@
  */
 
 /**
- * Re-usable function for the 6.2 schema.
+ * Re-usable function for the 7.2 schema.
  */
-function fontyourface_6200_schema() {
+function fontyourface_7200_schema() {
 
   $schema = array();
 
@@ -77,6 +77,13 @@ function fontyourface_6200_schema() {
         'default' => '',
         'description' => 'CSS weight for the font.',
       ),
+      'css_fallbacks' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'default' => '',
+        'description' => 'CSS fallbacks for the font.',
+      ),
       'foundry' => array(
         'type' => 'varchar',
         'length' => 255,
@@ -105,6 +112,20 @@ function fontyourface_6200_schema() {
         'default' => '',
         'description' => 'URL for license for the font.',
       ),
+      'designer' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'default' => '',
+        'description' => 'Designer for the font.',
+      ),
+      'designer_url' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'default' => '',
+        'description' => 'URL for designer for the font.',
+      ),
       'metadata' => array(
         'type' => 'text',
         'not null' => FALSE,
@@ -114,6 +135,9 @@ function fontyourface_6200_schema() {
     ),
     'indexes' => array(
       'enabled' => array('enabled'),
+    ),
+    'unique keys' => array(
+      'url' => array('url'),
     ),
     'primary key' => array('fid'),
   );
@@ -133,6 +157,13 @@ function fontyourface_6200_schema() {
         'not null' => TRUE,
         'default' => '',
         'description' => 'The font name.',
+      ),
+      'type' => array(
+        'type' => 'varchar',
+        'length' => 10,
+        'not null' => TRUE,
+        'default' => 'tag',
+        'description' => 'Indicator that describes the type of tag (term, subset, etc).',
       ),
     ),
     'primary key' => array('tid'),
@@ -165,83 +196,107 @@ function fontyourface_6200_schema() {
 
   return $schema;
 
-} // fontyourface_6200_schema
+} // fontyourface_7200_schema
 
 /**
  * Implements hook_schema().
  */
 function fontyourface_schema() {
 
-  return fontyourface_6200_schema();
+  return fontyourface_7200_schema();
 
 } // fontyourface_schema
 
 /**
- * Implements hook_update_N().
+ * Moves admin interface to fontyourface_ui module.
  */
-function fontyourface_update_6200() {
+function fontyourface_update_7200() {
 
-  // Get old fonts
+  // Move UI over to new fontyourface_ui module.
 
-  $old_fonts = array();
-  $old_fonts_sql = 'SELECT * FROM {fontyourface}';
-  $old_font_results = db_query($old_fonts_sql);
+  module_enable(array('fontyourface_ui'));
+  views_invalidate_cache();
 
-  while ($old_font = db_fetch_object($old_font_results)) {
-    $old_fonts[] = $old_font;
-  } // while
+  // Add new fields to schema.
 
-  // Drop old table.
+  $schema = fontyourface_7200_schema();
+  db_add_field('fontyourface_font', 'css_fallbacks', $schema['fontyourface_font']['fields']['css_fallbacks']);
+  db_add_field('fontyourface_font', 'designer', $schema['fontyourface_font']['fields']['designer']);
+  db_add_field('fontyourface_font', 'designer_url', $schema['fontyourface_font']['fields']['designer_url']);
 
-  db_drop_table('fontyourface');
+} // fontyourface_update_7200
 
-  // Drop provider tables from old version (may not all be there).
+/**
+ * Distinct subsets from tags using an extra 'type' column.
+ */
+function fontyourface_update_7201() {
 
-  $ignore = array();
-  db_drop_table('fontsquirrel_group');
-  db_drop_table('kernest');
-  db_drop_table('typekit_api_variant');
+  views_invalidate_cache();
 
-  // Import from any used providers.
+  // Add new column to schema.
 
-  $used_providers = array();
+  $schema = fontyourface_7200_schema();
+  db_add_field('fontyourface_tag', 'type', $schema['fontyourface_tag']['fields']['type']);
 
-  foreach ($old_fonts as $old_font) {
-    $used_providers[$old_font->provider] = TRUE;
+  // Convert existing Google Fonts tags to subsets
+  $query = db_select('fontyourface_tag', 't');
+  $query->innerJoin('fontyourface_tag_font', 'tf', 'tf.tid = t.tid');
+  $query->innerJoin('fontyourface_font', 'f', 'f.fid = tf.fid');
+  $query->distinct();
+  $result = $query->fields('t', array('tid'))
+            ->condition('f.provider', 'google_fonts_api')
+            ->execute();
+
+  foreach ($result as $font) {
+    db_update('fontyourface_tag')
+      ->fields(array('type' => 'subset'))
+      ->condition('tid', $font->tid)
+      ->execute();
   } // foreach
 
-  foreach ($used_providers as $used_provider) {
+} // fontyourface_update_7201
 
-    $import_function = $used_provider . '_fontyourface_import';
+/**
+ * Make the 'url' column unique to enable exportables
+ */
+function fontyourface_update_7202() {
 
-    if (function_exists($import_function)) {
-      $import_function();
-    } // if
+  $schema = fontyourface_7200_schema();
+  try {
+    db_add_unique_key('fontyourface_font', 'url', array('url'));
+  }
+  catch (DatabaseSchemaObjectExistsException $e) {
+    // Fail silently.
+  }
 
-  } // foreach
+} // fontyourface_update_7202
 
-  // Add tables.
+/**
+ * Remove single quotes from CSS selectors
+ */
+function fontyourface_update_7203() {
 
-  $schema = fontyourface_6200_schema();
+  // Removed - this will not work on SQLite databases.
+  //db_query("UPDATE {fontyourface_font} SET css_family = REPLACE(css_family, '\'', '');");
 
-  db_create_table('fontyourface_font', $schema['fontyourface_font']);
-  db_create_table('fontyourface_tag', $schema['fontyourface_tag']);
-  db_create_table('fontyourface_tag_font', $schema['fontyourface_tag_font']);
+} // fontyourface_update_7203
 
-  // Re-enable fonts.
+/**
+ * Remove single quotes from CSS selectors - properly this time.
+ */
+function fontyourface_update_7204() {
+  db_update('fontyourface_font')
+    ->expression('css_family', "REPLACE(css_family, '''', '')")
+    ->execute();
+}
 
-  foreach ($old_fonts as $old_font) {
+/**
+ * Implements hook_uninstall().
+ */
+function fontyourface_uninstall() {
 
-    $new_fonts = fontyourface_get_fonts("provider = '" . $old_font->provider . "' AND name = '" . $old_font->name . "'");
-
-    if (count($new_fonts) > 0) {
-      $new_font = $new_fonts[0];
-      fontyourface_enable_font($new_font);
-      fontyourface_set_css_selector($new_font, $old_font->css);
-    } // if
-
-  } // foreach
-
-  return t('Updated @font-your-face.');
-
-} // fontyourface_update_6200
+  variable_del('fontyourface_short_preview_text');
+  variable_del('fontyourface_detailed_logging');
+  variable_del('fontyourface_css_md5');
+  
+} // fontyourface_uninstall

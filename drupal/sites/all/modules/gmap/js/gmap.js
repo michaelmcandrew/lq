@@ -357,6 +357,7 @@ Drupal.gmap.addHandler('gmap', function (elem) {
           map.setCenter(new GLatLng(obj.vars.latitude, obj.vars.longitude), obj.vars.zoom);
         };
         jQuery(elem).parents('fieldset.collapsible').children('legend').children('a').click(r);
+        jQuery('.vertical-tab-button', jQuery(elem).parents('.vertical-tabs')).children('a').click(r);
         // Would be nice, but doesn't work.
         //$(elem).parents('fieldset.collapsible').children('.fieldset-wrapper').scroll(r);
       }, 0);
@@ -589,5 +590,15 @@ Drupal.behaviors.GMap = {
     }
     jQuery('.gmap-gmap:not(.gmap-processed)', context).addClass('gmap-processed').each(function () {Drupal.gmap.setup.call(this)});
     jQuery('.gmap-control:not(.gmap-processed)', context).addClass('gmap-processed').each(function () {Drupal.gmap.setup.call(this)});
+  },
+  detach: function (context, settings) {
+    jQuery('.gmap-processed', context).each(function (element) {
+      //find mapid
+      var id = jQuery(this).attr('id');
+      var mapid = id.split('-', 2);
+
+      //unload map
+      Drupal.gmap.unloadMap(mapid[1]);
+    });
   }
 };

@@ -1,5 +1,4 @@
 <?php
-// $Id: list_test.module,v 1.1 2009/12/14 20:18:55 dries Exp $
 
 /**
  * @file
@@ -21,4 +20,13 @@ function list_test_allowed_values_callback($field) {
   );
 
   return $values;
+}
+
+/**
+ * An entity-bound allowed values callback.
+ */
+function list_test_dynamic_values_callback($field, $instance, $entity_type, $entity, &$cacheable) {
+  $cacheable = FALSE;
+  // We need the values of the entity as keys.
+  return drupal_map_assoc(array_merge(array($entity->ftlabel), entity_extract_ids($entity_type, $entity)));
 }

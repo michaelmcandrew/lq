@@ -39,13 +39,21 @@ class gmap_plugin_style_gmap extends views_plugin_style {
     $options['center_on_nodearg'] = array('default' => 0);
     $options['center_on_nodearg_arg'] = array('default' => '');
 
+    $options['center_on_proximityarg'] = array('default' => 0);
+
     $options['highlight_nodearg'] = array('default' => 0);
     $options['highlight_nodearg_arg'] = array('default' => '');
     $options['highlight_nodearg_color'] = array('default' => '#FF0000');
 
+    $options['autoclick_on_nodearg'] = array('default' => 0);
+    $options['autoclick_on_nodearg_arg'] = array('default' => '');
+
     $options['tooltipenabled'] = array('default' => 0);
     $options['tooltipfield'] = array('default' => '');
-
+    
+    $options['bubbletextenabled'] = array('default' => 0);
+    $options['bubbletextfield'] = array('default' => '');
+    
     return $options;
   }
 
@@ -88,15 +96,21 @@ class gmap_plugin_style_gmap extends views_plugin_style {
     }
 
     $defaults = gmap_defaults();
-    $lat_field = 'gmap_lat';
-    $lon_field = 'gmap_lon';
 
+    if ($this->options['datasource'] == 'location') {
+      $lat_field = 'gmap_lat';
+      $lon_field = 'gmap_lon';
+    }
+    else if ($this->options['datasource'] == 'geofield') {
+      $lat_field = 'lat';
+      $lon_field = 'lon';
+    }
     // Determine fieldname for latitude and longitude fields.
-    if ($this->options['datasource'] == 'fields') {
-      $lat_fied_obj = $this->view->display_handler->get_handler('field', $this->options['latfield']);
+    else if ($this->options['datasource'] == 'fields') {
+      $lat_field_obj = $this->view->display_handler->get_handler('field', $this->options['latfield']);
       $lon_field_obj = $this->view->display_handler->get_handler('field', $this->options['lonfield']);
-      $lat_field = $lat_fied_obj->field_alias;
-      $lon_field = $lon_field_obj->field_alias;
+      $lat_field = $this->options['latfield'];
+      $lon_field = $this->options['lonfield'];
     }
 
     $tooltip_field = '';
@@ -104,11 +118,17 @@ class gmap_plugin_style_gmap extends views_plugin_style {
       $tooltip_field_obj = $this->view->display_handler->get_handler('field', $this->options['tooltipfield']);
       $tooltip_field = $tooltip_field_obj->field_alias;
     }
+    
+    $bubbletext_field_alias = '';
+    if ($this->options['bubbletextenabled']) {
+      $bubbletext_field_obj = $this->view->display_handler->get_handler('field', $this->options['bubbletextfield']);
+      $bubbletext_field_alias = $bubbletext_field_obj->field_alias;
+    }
 
     // Determine fieldname for marker field.
     if ($this->options['markers'] == 'field') {
       $marker_field_obj = $this->view->display_handler->get_handler('field', $this->options['markerfield']);
-      $marker_field = $marker_field_obj->field_alias;
+      $marker_field = 'field_' . $marker_field_obj->field;
     }
     
     // Determine rmt field.
@@ -129,7 +149,10 @@ class gmap_plugin_style_gmap extends views_plugin_style {
 
     // Group the rows according to the grouping field, if specified.
     $sets = $this->render_grouping($this->view->result, $this->options['grouping']);
-
+    
+    // Let's make sure the individual fields are rendered 
+    $this->render_fields($this->view->result);
+    
     // Render each group separately and concatenate.  Plugins may override this
     // method if they wish some other way of handling grouping.
     $output = '';
@@ -140,19 +163,52 @@ class gmap_plugin_style_gmap extends views_plugin_style {
       $center_lon = NULL;
       $center_nid = NULL;
       $highlight_nid = NULL;
+      $autoclick_nid = NULL;
 
-      // We search nid argument used to center map
+      // We search nid argument used to center map, autoclick or highlight.
       if ($this->options['center_on_nodearg'] && $nodehandler = $this->view->display_handler->get_handler('argument', $this->options['center_on_nodearg_arg'])) {
         $center_nid = $nodehandler->get_value();
+      }
+      // Use the distance contextual filter argument to center the map
+      if ($this->options['center_on_proximityarg'] && $this->options['datasource'] == 'location' && module_exists('location')) {
+        // Just grab this straight from the view
+        $distance_contextual_filter = $this->view->display_handler->get_handler('argument', 'distance');
+
+        $center_lat = $distance_contextual_filter->value['latitude'];
+        $center_lon = $distance_contextual_filter->value['longitude'];
       }
       if ($this->options['highlight_nodearg'] && $nodehandler = $this->view->display_handler->get_handler('argument', $this->options['highlight_nodearg_arg'])) {
         $highlight_nid = $nodehandler->get_value();
       }
+      if ($this->options['autoclick_on_nodearg'] && $nodehandler = $this->view->display_handler->get_handler('argument', $this->options['autoclick_on_nodearg_arg'])) {
+        $autoclick_nid = $nodehandler->get_value();
+      }
 
       foreach ($records as $row_index => $row) {
         $this->view->row_index = $row_index;
-        $lat = (float)$row->{$lat_field};
-        $lon = (float)$row->{$lon_field};
+
+        if ($this->options['datasource'] == 'location') {
+          $lat = (float)$row->{$lat_field};
+          $lon = (float)$row->{$lon_field};
+        }
+        else if ($this->options['datasource'] == 'geofield') {
+          $geofield_name = 'field_' . $this->options['geofield'];
+          $geofield = isset($row->{$geofield_name}[0]['raw']) ? $row->{$geofield_name}[0]['raw'] : NULL;
+          if ($geofield) {
+            $lat = (float)$geofield[$lat_field];
+            $lon = (float)$geofield[$lon_field];
+          }
+        }
+        else if ($this->options['datasource'] == 'fields') {
+          $custom_field_latname = 'field_' . $lat_field;
+          $custom_field_lonname = 'field_' . $lon_field;
+          $custom_field_lat = isset($row->{$custom_field_latname}[0]['raw']) ? $row->{$custom_field_latname}[0]['raw'] : NULL;
+          $custom_field_lon = isset($row->{$custom_field_lonname}[0]['raw']) ? $row->{$custom_field_lonname}[0]['raw'] : NULL;
+          if ($custom_field_lat && $custom_field_lon) {
+            $lat = (float)$custom_field_lat['value'];
+            $lon = (float)$custom_field_lon['value'];
+          }
+        }
 
         // $row->nid is present in node views, views without node as the base table must include the nid field,
         // which will be in $row->node_nid if present.
@@ -186,8 +242,9 @@ class gmap_plugin_style_gmap extends views_plugin_style {
             }
           }
           elseif ($this->options['markers'] == 'field') {
+
             if (!empty($row->{$marker_field})) {
-              $markername = $row->{$marker_field};
+              $markername = $row->{$marker_field}[0]['raw']['value'];
             }
           }
           if (!isset($offsets[$markername])) {
@@ -198,18 +255,26 @@ class gmap_plugin_style_gmap extends views_plugin_style {
           if ($this->options['tooltipenabled'] && !empty($tooltip_field) && !empty($row->{$tooltip_field})) {
             $tooltip = $row->{$tooltip_field};
           }
+          
+          $bubbletext = NULL;
+          if ($this->options['bubbletextenabled'] && !empty($bubbletext_field_alias) && !empty($row->{$bubbletext_field_alias})) {
+            $bubbletext = $this->rendered_fields[$row_index][$this->options['bubbletextfield']];
+          }
 
           $marker = array(
             'latitude' => $lat,
             'longitude' => $lon,
             'markername' => $markername,
             'offset' => $offsets[$markername],
+            'text' => $bubbletext,
+            'autoclick' => (!empty($autoclick_nid) && !empty($row_nid) && $autoclick_nid == $row_nid) ? 1 : 0,
             'opts' => array(
               'title' => $tooltip,
               'highlight' => (!empty($highlight_nid) && !empty($row_nid) && $highlight_nid == $row_nid) ? 1 : 0,
               'highlightcolor' => $this->options['highlight_nodearg_color'],
             ),
           );
+
           // RMT mode.
           if ($this->options['enablermt']) {
             $marker['rmt'] = $row->{$rmt_field};
@@ -284,6 +349,7 @@ class gmap_plugin_style_gmap extends views_plugin_style {
       '#title' => t('Data Source'),
       '#options' => array(
         'location' => t('Location.module'),
+        'geofield' => t('Geofield.module'),
         'fields' => t('Choose latitude and longitude fields'),
       //'geocode' => t('Just-in-time geocoding on field named "address"'),
       ),
@@ -309,6 +375,16 @@ class gmap_plugin_style_gmap extends views_plugin_style {
       '#default_value' => $this->options['lonfield'],
       '#process' => array('ctools_dependent_process'),
       '#dependency' => array('edit-style-options-datasource' => array('fields')),
+    );
+
+    $form['geofield'] = array(
+      '#title' => t('Geofield field'),
+      '#description' => t('Select the Geofield source field.'),
+      '#type' => 'select',
+      '#options' => $field_options,
+      '#default_value' => $this->options['geofield'],
+      '#process' => array('ctools_dependent_process'),
+      '#dependency' => array('edit-style-options-datasource' => array('geofield')),
     );
 
     $form['markers'] = array(
@@ -338,7 +414,7 @@ class gmap_plugin_style_gmap extends views_plugin_style {
     $form['enablermt'] = array(
       '#type' => 'checkbox',
       '#title' => t('Enable GMap RMT for markers'),
-      '#description' => t('You can pull the bodies of the markers from a callback instead of defining them inline. This is a performance feature for advanced users.'),
+      '#description' => t('You can pull the bodies of the markers from a callback instead of defining them inline. This is a performance feature for advanced users. <strong>NOTE:</strong> This feature is <strong>not compatible</strong> with the popup bubble feature below.  Enable only one of them.'),
       '#default_value' => $this->options['enablermt'],
     );
     $form['rmtfield'] = array(
@@ -386,6 +462,15 @@ class gmap_plugin_style_gmap extends views_plugin_style {
       '#dependency' => array('edit-style-options-center-on-nodearg' => array(TRUE)),
     );
 
+    if (module_exists('location')) {
+      $form['center_on_proximityarg'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Center on proximity contextual filter'),
+        '#default_value' => $this->options['center_on_proximityarg'],
+        '#description' => t('Note: The view must contain a "Location: Distance / Proximity" contextual filter'),
+      );
+    }
+
     $form['highlight_nodearg'] = array(
       '#type' => 'checkbox',
       '#title' => t('Highlight marker for node argument'),
@@ -412,6 +497,22 @@ class gmap_plugin_style_gmap extends views_plugin_style {
       '#dependency' => array('edit-style-options-highlight-nodearg' => array(TRUE)),
     );
 
+    $form['autoclick_on_nodearg'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Autoclick on node argument'),
+      '#default_value' => $this->options['autoclick_on_nodearg'],
+      '#description' => ($this->view->base_table == 'node') ? t('Note: The view must contain an argument whose value is a node ID.') : t('Note: The view must contain an argument whose value is a node ID.') . '<br />' . t("The view must contain 'Node: nid' as one of its fields because the view type is not 'Node'."),
+    );
+    $form['autoclick_on_nodearg_arg'] = array(
+      '#title' => t('Argument'),
+      '#description' => empty($argument_options) ? t("The value of the selected argument must be a number that matches a node ID.  Use the 'Global: Null' argument if you don't want to also restrict results to that node ID.  You must have added arguments to the view to use this option.") : t("The selected argument must be a number that matches a node ID.  Use the 'Global: Null' argument if you don't want to also restrict results to that node ID."),
+      '#type' => 'select',
+      '#options' => $argument_options,
+      '#default_value' => $this->options['autoclick_on_nodearg_arg'],
+      '#process' => array('ctools_dependent_process'),
+      '#dependency' => array('edit-style-options-autoclick-on-nodearg' => array(TRUE)),
+    );
+
     $form['tooltipenabled'] = array(
       '#type' => 'checkbox',
       '#title' => t('Display a tooltip when hovering over markers'),
@@ -426,12 +527,29 @@ class gmap_plugin_style_gmap extends views_plugin_style {
       '#process' => array('ctools_dependent_process'),
       '#dependency' => array('edit-style-options-tooltipenabled' => array(TRUE)),
     );
+    $form['bubbletextenabled'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Display a popup bubble with additional information when a marker is clicked.'),
+      '#default_value' => $this->options['bubbletextenabled'],
+      '#description' => t('<strong>NOTE:</strong> This feauture is <strong>not compatible</strong> with the RMT option offered above.  Do not use them together.')
+    );
+    $form['bubbletextfield'] = array(
+      '#title' => t('Bubble pop-up field'),
+      '#description' => empty($field_options) ? t("The field's format must be HTML or text.  You must be using the fields row style and have added fields to the view to use this option.") : t("The field's format must be HTML or text."),
+      '#type' => 'select',
+      '#options' => $field_options,
+      '#default_value' => $this->options['bubbletextfield'],
+      '#process' => array('ctools_dependent_process'),
+      '#dependency' => array('edit-style-options-bubbletextenabled' => array(TRUE)),
+    );
+    
   }
 
   /**
    * Validate the options form.
    */
   function options_validate(&$form, &$form_state) {
+	parent::options_validate($form, $form_state);
     // Check if highlight color is a valid hex color
     if (!preg_match('/^#[a-f0-9]{6}$/i', $form_state['values']['style_options']['highlight_nodearg_color'])) {
       form_error($form['highlight_nodearg_color'], t('Highlight colour must be a valid hex code in the form #FF0000.'));

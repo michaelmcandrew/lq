@@ -694,7 +694,7 @@ function gmap_location_block_view($delta = '') {
 function _gmap_location_block_view($nid) {
   $block = array();
   $node = node_load($nid);
-  if ($node->locations) {
+  if (!empty($node->locations)) {
     $markertypes = variable_get('gmap_node_markers', array());
     $markers = array();
     $count = 0;

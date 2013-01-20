@@ -1,5 +1,4 @@
 <?php
-// $Id: page.tpl.php,v 1.9 2010/11/07 21:48:56 dries Exp $
 
 /**
  * @file
@@ -7,7 +6,7 @@
  *
  * The doctype, html, head and body tags are not in this template. Instead they
  * can be found in the html.tpl.php template normally located in the
- * modules/system folder.
+ * modules/system directory.
  *
  * Available variables:
  *
@@ -83,6 +82,7 @@
  * @see template_preprocess_page()
  * @see template_process()
  * @see bartik_process_page()
+ * @see html.tpl.php
  */
 ?>
 <div id="page-wrapper"><div id="page">

@@ -1,5 +1,4 @@
 <?php
-// $Id: log.inc,v 1.8 2010/03/31 15:09:21 dries Exp $
 
 /**
  * @file
@@ -129,9 +128,10 @@ class DatabaseLog {
    * Determine the routine that called this query.
    *
    * We define "the routine that called this query" as the first entry in
-   * the call stack that is not inside includes/database. That makes the
-   * climbing logic very simple, and handles the variable stack depth caused
-   * by the query builders.
+   * the call stack that is not inside includes/database and does have a file
+   * (which excludes call_user_func_array(), anonymous functions and similar).
+   * That makes the climbing logic very simple, and handles the variable stack
+   * depth caused by the query builders.
    *
    * @link http://www.php.net/debug_backtrace
    * @return
@@ -145,7 +145,8 @@ class DatabaseLog {
     $stack = debug_backtrace();
     $stack_count = count($stack);
     for ($i = 0; $i < $stack_count; ++$i) {
-      if (strpos($stack[$i]['file'], 'includes' . DIRECTORY_SEPARATOR . 'database') === FALSE) {
+      if (!empty($stack[$i]['file']) && strpos($stack[$i]['file'], 'includes' . DIRECTORY_SEPARATOR . 'database') === FALSE) {
+        $stack[$i] += array('args' => array());
         return array(
           'file' => $stack[$i]['file'],
           'line' => $stack[$i]['line'],

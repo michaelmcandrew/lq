@@ -73,7 +73,7 @@ function login_destination_schema() {
  */
 function login_destination_install() {
   // update the alter option of 'user/logout' to TRUE (menu_save invokes necessary hooks)
-  $result = db_query("SELECT mlid, menu_name FROM {menu_links} WHERE link_path = 'user/logout' OR  link_path = 'user' ORDER BY mlid ASC");
+  $result = db_query("SELECT mlid, menu_name FROM {menu_links} WHERE link_path = 'user/logout' OR link_path = 'user/login' OR  link_path = 'user' ORDER BY mlid ASC");
   foreach($result as $res) {
     $item = menu_link_load($res->mlid);
     $item['options']['alter'] = TRUE;

@@ -1,16 +1,20 @@
 <?php
-// $Id: translation.pages.inc,v 1.18 2010/12/31 20:45:25 webchick Exp $
 
 /**
  * @file
- * User page callbacks for the translation module.
+ * User page callbacks for the Translation module.
  */
 
 /**
- * Overview page for a node's translations.
+ * Page callback: Displays a list of a node's translations.
  *
  * @param $node
- *   Node object.
+ *   A node object.
+ *
+ * @return
+ *   A render array for a page containing a list of content.
+ *
+ * @see translation_menu()
  */
 function translation_node_overview($node) {
   include_once DRUPAL_ROOT . '/includes/language.inc';
@@ -23,7 +27,7 @@ function translation_node_overview($node) {
   else {
     // We have no translation source nid, this could be a new set, emulate that.
     $tnid = $node->nid;
-    $translations = array($node->language => $node);
+    $translations = array(entity_language('node', $node) => $node);
   }
 
   $type = variable_get('translation_language_type', LANGUAGE_TYPE_INTERFACE);
@@ -38,12 +42,12 @@ function translation_node_overview($node) {
       $translation_node = node_load($translations[$langcode]->nid);
       $path = 'node/' . $translation_node->nid;
       $links = language_negotiation_get_switch_links($type, $path);
-      $title = empty($links->links[$langcode]) ? l($translation_node->title, $path) : l($translation_node->title, $links->links[$langcode]['href'], $links->links[$langcode]);
+      $title = empty($links->links[$langcode]['href']) ? l($translation_node->title, $path) : l($translation_node->title, $links->links[$langcode]['href'], $links->links[$langcode]);
       if (node_access('update', $translation_node)) {
         $text = t('edit');
         $path = 'node/' . $translation_node->nid . '/edit';
         $links = language_negotiation_get_switch_links($type, $path);
-        $options[] = empty($links->links[$langcode]) ? l($text, $path) : l($text, $links->links[$langcode]['href'], $links->links[$langcode]);
+        $options[] = empty($links->links[$langcode]['href']) ? l($text, $path) : l($text, $links->links[$langcode]['href'], $links->links[$langcode]);
       }
       $status = $translation_node->status ? t('Published') : t('Not published');
       $status .= $translation_node->translate ? ' - <span class="marker">' . t('outdated') . '</span>' : '';
@@ -59,7 +63,7 @@ function translation_node_overview($node) {
         $path = 'node/add/' . str_replace('_', '-', $node->type);
         $links = language_negotiation_get_switch_links($type, $path);
         $query = array('query' => array('translation' => $node->nid, 'target' => $langcode));
-        $options[] = empty($links->links[$langcode]) ? l($text, $path, $query) : l($text, $links->links[$langcode]['href'], array_merge_recursive($links->links[$langcode], $query));
+        $options[] = empty($links->links[$langcode]['href']) ? l($text, $path, $query) : l($text, $links->links[$langcode]['href'], array_merge_recursive($links->links[$langcode], $query));
       }
       $status = t('Not translated');
     }

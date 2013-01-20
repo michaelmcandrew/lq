@@ -1,5 +1,4 @@
 <?php
-// $Id: image.field.inc,v 1.34 2010/10/31 12:12:00 dries Exp $
 
 /**
  * @file
@@ -26,6 +25,7 @@ function image_field_info() {
         'title_field' => 0,
         'max_resolution' => '',
         'min_resolution' => '',
+        'default_image' => 0,
       ),
       'default_widget' => 'image_image',
       'default_formatter' => 'image',
@@ -52,16 +52,18 @@ function image_field_settings_form($field, $instance) {
     '#description' => t('Select where the final files should be stored. Private file storage has significantly more overhead than public files, but allows restricted access to files within this field.'),
   );
 
+  // When the user sets the scheme on the UI, even for the first time, it's
+  // updating a field because fields are created on the "Manage fields"
+  // page. So image_field_update_field() can handle this change.
   $form['default_image'] = array(
     '#title' => t('Default image'),
     '#type' => 'managed_file',
     '#description' => t('If no image is uploaded, this image will be shown on display.'),
     '#default_value' => $field['settings']['default_image'],
-    '#upload_location' => 'public://default_images/',
+    '#upload_location' => $settings['uri_scheme'] . '://default_images/',
   );
 
   return $form;
-
 }
 
 /**
@@ -151,6 +153,15 @@ function image_field_instance_settings_form($field, $instance) {
     '#weight' => 11,
   );
 
+  // Add the default image to the instance.
+  $form['default_image'] = array(
+    '#title' => t('Default image'),
+    '#type' => 'managed_file',
+    '#description' => t("If no image is uploaded, this image will be shown on display and will override the field's default image."),
+    '#default_value' => $settings['default_image'],
+    '#upload_location' => $field['settings']['uri_scheme'] . '://default_images/',
+  );
+
   return $form;
 }
 
@@ -190,8 +201,19 @@ function image_field_load($entity_type, $entities, $field, $instances, $langcode
 function image_field_prepare_view($entity_type, $entities, $field, $instances, $langcode, &$items) {
   // If there are no files specified at all, use the default.
   foreach ($entities as $id => $entity) {
-    if (empty($items[$id]) && $field['settings']['default_image']) {
-      if ($file = file_load($field['settings']['default_image'])) {
+    if (empty($items[$id])) {
+      $fid = 0;
+      // Use the default for the instance if one is available.
+      if (!empty($instances[$id]['settings']['default_image'])) {
+        $fid = $instances[$id]['settings']['default_image'];
+      }
+      // Otherwise, use the default for the field.
+      elseif (!empty($field['settings']['default_image'])) {
+        $fid = $field['settings']['default_image'];
+      }
+
+      // Add the default image if one is found.
+      if ($fid && ($file = file_load($fid))) {
         $items[$id][0] = (array) $file + array(
           'is_default' => TRUE,
           'alt' => '',
@@ -207,6 +229,18 @@ function image_field_prepare_view($entity_type, $entities, $field, $instances, $
  */
 function image_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
   file_field_presave($entity_type, $entity, $field, $instance, $langcode, $items);
+
+  // Determine the dimensions if necessary.
+  foreach ($items as &$item) {
+    if (!isset($item['width']) || !isset($item['height'])) {
+      $info = image_get_info(file_load($item['fid'])->uri);
+
+      if (is_array($info)) {
+        $item['width'] = $info['width'];
+        $item['height'] = $info['height'];
+      }
+    }
+  }
 }
 
 /**
@@ -345,9 +379,42 @@ function image_field_widget_process($element, &$form_state, $form) {
 
   // Add the image preview.
   if ($element['#file'] && $widget_settings['preview_image_style']) {
+    $variables = array(
+      'style_name' => $widget_settings['preview_image_style'],
+      'path' => $element['#file']->uri,
+    );
+
+    // Determine image dimensions.
+    if (isset($element['#value']['width']) && isset($element['#value']['height'])) {
+      $variables['width'] = $element['#value']['width'];
+      $variables['height'] = $element['#value']['height'];
+    }
+    else {
+      $info = image_get_info($element['#file']->uri);
+
+      if (is_array($info)) {
+        $variables['width'] = $info['width'];
+        $variables['height'] = $info['height'];
+      }
+      else {
+        $variables['width'] = $variables['height'] = NULL;
+      }
+    }
+
     $element['preview'] = array(
       '#type' => 'markup',
-      '#markup' => theme('image_style', array('style_name' => $widget_settings['preview_image_style'], 'path' => $element['#file']->uri)),
+      '#markup' => theme('image_style', $variables),
+    );
+
+    // Store the dimensions in the form so the file doesn't have to be accessed
+    // again. This is important for remote files.
+    $element['width'] = array(
+      '#type' => 'hidden',
+      '#value' => $variables['width'],
+    );
+    $element['height'] = array(
+      '#type' => 'hidden',
+      '#value' => $variables['height'],
     );
   }
 
@@ -357,7 +424,8 @@ function image_field_widget_process($element, &$form_state, $form) {
     '#type' => 'textfield',
     '#default_value' => isset($item['alt']) ? $item['alt'] : '',
     '#description' => t('This text will be used by screen readers, search engines, or when the image cannot be loaded.'),
-    '#maxlength' => variable_get('image_alt_length', 80), // See http://www.gawds.org/show.php?contentid=28.
+    // @see http://www.gawds.org/show.php?contentid=28
+    '#maxlength' => 512,
     '#weight' => -2,
     '#access' => (bool) $item['fid'] && $settings['alt_field'],
   );
@@ -366,7 +434,7 @@ function image_field_widget_process($element, &$form_state, $form) {
     '#title' => t('Title'),
     '#default_value' => isset($item['title']) ? $item['title'] : '',
     '#description' => t('The title is used as a tool tip when the user hovers the mouse over the image.'),
-    '#maxlength' => variable_get('image_title_length', 500),
+    '#maxlength' => 1024,
     '#weight' => -1,
     '#access' => (bool) $item['fid'] && $settings['title_field'],
   );
@@ -521,7 +589,8 @@ function image_field_formatter_view($entity_type, $entity, $field, $instance, $l
  *
  * @param $variables
  *   An associative array containing:
- *   - item: An array of image data.
+ *   - item: Associative array of image data, which may include "uri", "alt",
+ *     "width", "height", "title" and "attributes".
  *   - image_style: An optional image style.
  *   - path: An array containing the link 'path' and link 'options'.
  *
@@ -531,10 +600,23 @@ function theme_image_formatter($variables) {
   $item = $variables['item'];
   $image = array(
     'path' => $item['uri'],
-    'alt' => $item['alt'],
   );
+
+  if (array_key_exists('alt', $item)) {
+    $image['alt'] = $item['alt'];
+  }
+
+  if (isset($item['attributes'])) {
+    $image['attributes'] = $item['attributes'];
+  }
+
+  if (isset($item['width']) && isset($item['height'])) {
+    $image['width'] = $item['width'];
+    $image['height'] = $item['height'];
+  }
+
   // Do not output an empty 'title' attribute.
-  if (drupal_strlen($item['title']) > 0) {
+  if (isset($item['title']) && drupal_strlen($item['title']) > 0) {
     $image['title'] = $item['title'];
   }
 
@@ -546,9 +628,11 @@ function theme_image_formatter($variables) {
     $output = theme('image', $image);
   }
 
-  if ($variables['path']) {
+  // The link path and link options are both optional, but for the options to be
+  // processed, the link path must at least be an empty string.
+  if (isset($variables['path']['path'])) {
     $path = $variables['path']['path'];
-    $options = $variables['path']['options'];
+    $options = isset($variables['path']['options']) ? $variables['path']['options'] : array();
     // When displaying an image inside a link, the html option must be TRUE.
     $options['html'] = TRUE;
     $output = l($output, $path, $options);

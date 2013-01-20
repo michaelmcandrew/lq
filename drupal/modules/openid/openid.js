@@ -1,4 +1,3 @@
-// $Id: openid.js,v 1.13 2010/03/22 18:55:45 dries Exp $
 (function ($) {
 
 Drupal.behaviors.openid = {
@@ -8,14 +7,14 @@ Drupal.behaviors.openid = {
     var cookie = $.cookie('Drupal.visitor.openid_identifier');
 
     // This behavior attaches by ID, so is only valid once on a page.
-    if (!$('#edit-openid-identifier.openid-processed').size()) {
+    if (!$('#edit-openid-identifier.openid-processed').length) {
       if (cookie) {
         $('#edit-openid-identifier').val(cookie);
       }
-      if ($('#edit-openid-identifier').val()) {
+      if ($('#edit-openid-identifier').val() || location.hash == '#openid-login') {
         $('#edit-openid-identifier').addClass('openid-processed');
         loginElements.hide();
-        // Use .css('display', 'block') instead of .show() to  Konqueror friendly.
+        // Use .css('display', 'block') instead of .show() to be Konqueror friendly.
         openidElements.css('display', 'block');
       }
     }

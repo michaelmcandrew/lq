@@ -1,5 +1,4 @@
 <?php
-// $Id: simpletest.api.php,v 1.4 2009/12/20 21:12:54 dries Exp $
 
 /**
  * @file
@@ -21,7 +20,7 @@
  */
 function hook_simpletest_alter(&$groups) {
   // An alternative session handler module would not want to run the original
-  // Session https handling test because it checks the sessions table in the
+  // Session HTTPS handling test because it checks the sessions table in the
   // database.
   unset($groups['Session']['testHttpsSession']);
 }

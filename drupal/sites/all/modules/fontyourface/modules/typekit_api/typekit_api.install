@@ -10,9 +10,12 @@
  */
 function typekit_api_enable() {
 
-  // Weight must be above @font-your-face weight so preprocess comes after
-
-  db_query("UPDATE {system} SET weight = 1 WHERE name = 'typekit_api'");
+  // Set weight to 1 to ensure typekit_api_preprocess_html() is executed after
+  // fontyourface_preprocess_html(), which has weight of 0.
+  db_update('system')
+    ->fields(array('weight' => 1))
+    ->condition('name', 'typekit_api')
+    ->execute();
 
 } // typekit_api_enable
 
@@ -22,6 +25,14 @@ function typekit_api_enable() {
 function typekit_api_disable() {
 
   fontyourface_provider_disable('typekit_api');
-  variable_del('typekit_api_token');
 
 } // typekit_api_disable
+
+/**
+ * Implements hook_uninstall().
+ */
+function typekit_api_uninstall() {
+
+  variable_del('typekit_api_token');
+
+} // typekit_api_uninstall

@@ -1,4 +1,3 @@
-// $Id: user.js,v 1.25 2010/11/30 23:55:11 webchick Exp $
 (function ($) {
 
 /**
@@ -17,7 +16,7 @@ Drupal.behaviors.password = {
       innerWrapper.addClass('password-parent');
 
       // Add the password confirmation layer.
-      $('input.password-confirm', outerWrapper).after('<div class="password-confirm">' + translate['confirmTitle'] + ' <span></span></div>').parent().addClass('confirm-parent');
+      $('input.password-confirm', outerWrapper).parent().prepend('<div class="password-confirm">' + translate['confirmTitle'] + ' <span></span></div>').addClass('confirm-parent');
       var confirmInput = $('input.password-confirm', outerWrapper);
       var confirmResult = $('div.password-confirm', outerWrapper);
       var confirmChild = $('span', confirmResult);
@@ -96,10 +95,10 @@ Drupal.behaviors.password = {
 Drupal.evaluatePasswordStrength = function (password, translate) {
   var weaknesses = 0, strength = 100, msg = [];
 
-  var hasLowercase = password.match(/[a-z]+/);
-  var hasUppercase = password.match(/[A-Z]+/);
-  var hasNumbers = password.match(/[0-9]+/);
-  var hasPunctuation = password.match(/[^a-zA-Z0-9]+/);
+  var hasLowercase = /[a-z]+/.test(password);
+  var hasUppercase = /[A-Z]+/.test(password);
+  var hasNumbers = /[0-9]+/.test(password);
+  var hasPunctuation = /[^a-zA-Z0-9]+/.test(password);
 
   // If there is a username edit box on the page, compare password to that, otherwise
   // use value from the database.
@@ -169,7 +168,7 @@ Drupal.evaluatePasswordStrength = function (password, translate) {
 
   // Assemble the final message.
   msg = translate.hasWeaknesses + '<ul><li>' + msg.join('</li><li>') + '</li></ul>';
-  return { strength: strength, message: msg, indicatorText: indicatorText }
+  return { strength: strength, message: msg, indicatorText: indicatorText };
 
 };
 
@@ -181,7 +180,7 @@ Drupal.behaviors.fieldUserRegistration = {
   attach: function (context, settings) {
     var $checkbox = $('form#field-ui-field-edit-form input#edit-instance-settings-user-register-form');
 
-    if ($checkbox.size()) {
+    if ($checkbox.length) {
       $('input#edit-instance-required', context).once('user-register-form-checkbox', function () {
         $(this).bind('change', function (e) {
           if ($(this).attr('checked')) {

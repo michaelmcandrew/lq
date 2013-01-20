@@ -1,5 +1,9 @@
 <?php
-// $Id: tracker.install,v 1.6 2011/01/02 17:26:39 webchick Exp $
+
+/**
+ * @file
+ * Install, update, and uninstall functions for tracker.module.
+ */
 
 /**
  * Implements hook_uninstall().
@@ -217,5 +221,5 @@ function tracker_update_7000() {
 }
 
 /**
- * @} End of "addtogroup updates-6.x-to-7.x"
+ * @} End of "addtogroup updates-6.x-to-7.x".
  */

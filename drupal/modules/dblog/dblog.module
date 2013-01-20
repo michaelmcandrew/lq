@@ -1,5 +1,4 @@
 <?php
-// $Id: dblog.module,v 1.57 2010/10/03 02:14:23 dries Exp $
 
 /**
  * @file
@@ -20,7 +19,7 @@ function dblog_help($path, $arg) {
     case 'admin/help#dblog':
       $output = '';
       $output .= '<h3>' . t('About') . '</h3>';
-      $output .= '<p>' . t('The Database logging module logs system events in the Drupal database. For more information, see the online handbook entry for the <a href="@dblog">Database logging module</a>.', array('@dblog' => 'http://drupal.org/handbook/modules/dblog')) . '</p>';
+      $output .= '<p>' . t('The Database logging module logs system events in the Drupal database. For more information, see the online handbook entry for the <a href="@dblog">Database logging module</a>.', array('@dblog' => 'http://drupal.org/documentation/modules/dblog')) . '</p>';
       $output .= '<h3>' . t('Uses') . '</h3>';
       $output .= '<dl>';
       $output .= '<dt>' . t('Monitoring your site') . '</dt>';
@@ -97,7 +96,7 @@ function dblog_init() {
 /**
  * Implements hook_cron().
  *
- * Remove expired log messages and flood control events.
+ * Remove expired log messages.
  */
 function dblog_cron() {
   // Cleanup the watchdog table.
@@ -141,7 +140,7 @@ function _dblog_get_message_types() {
 function dblog_watchdog(array $log_entry) {
   Database::getConnection('default', 'default')->insert('watchdog')
     ->fields(array(
-      'uid' => $log_entry['user']->uid,
+      'uid' => $log_entry['uid'],
       'type' => substr($log_entry['type'], 0, 64),
       'message' => $log_entry['message'],
       'variables' => serialize($log_entry['variables']),

@@ -4,7 +4,7 @@
  * @file
  * Provides content for help pages.
  *
- * @author Markus Kalkbrenner | Cocomore AG
+ * @author Markus Kalkbrenner | bio.logis GmbH
  *   @see http://drupal.org/user/124705
  */
 
@@ -300,6 +300,16 @@ function themekey_help_operators_form($form, &$form_state, $collapsed) {
     '#markup' => t('<strong>!</strong><br />not equals'),
   );
 
+  $form['themekey_help_operators']['*'] = array(
+    '#type' => 'item',
+    '#markup' => t('<strong>*</strong><br />contains'),
+  );
+
+  $form['themekey_help_operators']['!*'] = array(
+    '#type' => 'item',
+    '#markup' => t('<strong>!*</strong><br />not contains'),
+  );
+
   $form['themekey_help_operators']['<'] = array(
     '#type' => 'item',
     '#markup' => t('<strong>&lt;</strong><br />less than (alphanumeric values are treated in alphabetical order: "A" is less than "B" but "B" is less than "a")'),
@@ -323,6 +333,11 @@ function themekey_help_operators_form($form, &$form_state, $collapsed) {
   $form['themekey_help_operators']['~'] = array(
     '#type' => 'item',
     '#markup' => t('<strong>~</strong><br />regular expression, including delimiters and modifiers (see !link)', array('!link' => l(t('PHP Manual'), 'http://php.net/manual/en/pcre.pattern.php'))),
+  );
+
+  $form['themekey_help_operators']['!~'] = array(
+    '#type' => 'item',
+    '#markup' => t('<strong>!~</strong><br />non matchting regular expression, including delimiters and modifiers (see !link)', array('!link' => l(t('PHP Manual'), 'http://php.net/manual/en/pcre.pattern.php'))),
   );
 
   return $form;
