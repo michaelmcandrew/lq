@@ -1,0 +1,26 @@
+diff --git mailing_list.admin.inc mailing_list.admin.inc
+index 75d5f53..0e1c2de 100644
+--- mailing_list.admin.inc
++++ mailing_list.admin.inc
+@@ -411,7 +411,7 @@ function mailing_list_export($list) {
+ 	file_transfer($full_path, $headers);
+ }
+ 
+-function mailing_list_admin_settings(&$form, &$form_state) {
++function mailing_list_admin_settings($form, &$form_state) {
+   drupal_set_title('Mailing list settings');
+   $form['mailing_list_subscription_message'] = array(
+     '#type' => 'textfield',
+diff --git mailing_list.module mailing_list.module
+index cf6d16a..22436e8 100644
+--- mailing_list.module
++++ mailing_list.module
+@@ -45,7 +45,7 @@ function mailing_list_menu() {
+ 
+   $items['admin/structure/mailing-list'] = array(
+     'title' => 'Mailing lists',
+-    'description' => t('Manage your mailing lists.'),
++    'description' => 'Manage your mailing lists.',
+     'page callback' => 'mailing_list_lists',
+     'access arguments' => array('administer mailing lists'),
+     'file' => 'mailing_list.admin.inc',
