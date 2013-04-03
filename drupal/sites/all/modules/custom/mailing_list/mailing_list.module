@@ -434,6 +434,13 @@ function mailing_list_subscription_form($form, &$form_state, $list, $is_callback
     '#size' => 20,
     '#required' => TRUE,
   );
+  // londonquakers.org.uk
+  $form['meeting'] = array(
+    '#title' => t('Your Quaker Meeting'),
+    '#type' => 'textfield',
+    '#size' => 20,
+    '#required' => FALSE,
+  );
   $form['submit'] = array(
     '#value' => t('Subscribe'),
     '#type' => 'submit',
@@ -498,6 +505,8 @@ function mailing_list_subscription_form_submit($form, &$form_state) {
   $mle->mlid = $form_state['values']['mlid'];
   $mle->mail = $form_state['values']['mail'];
   $mle->name = $form_state['values']['name'];
+  // londonquakers.org.uk
+  $mle->meeting = $form_state['values']['meeting'];
   if ($is_edit) {
     $mle->eid = $form_state['values']['eid'];
   }

@@ -65,6 +65,12 @@ function mailing_list_schema() {
         'length' => 255,
         'not null' => TRUE,
       ),
+      'meeting' => array(
+        'description' => t('The meeting of this subscriber.'),
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
       'name' => array(
         'description' => t('The name of this subscriber.'),
         'type' => 'varchar',
