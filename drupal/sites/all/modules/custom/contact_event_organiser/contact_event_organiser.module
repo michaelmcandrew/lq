@@ -10,8 +10,10 @@ function contact_event_organiser_node_view($node, $view_mode, $langcode) {
 		return;
 	};
 
+  $contact_form = drupal_get_form('contact_event_organiser_form', $node);
+
 	$node->content['contact_event_organiser_form']=array(
-		'#markup' => drupal_render(drupal_get_form('contact_event_organiser_form', $node)),
+		'#markup' => drupal_render($contact_form),
 		'#weight' => 10
 	);
 	$node->content['contact_event_organiser_title']=array(
