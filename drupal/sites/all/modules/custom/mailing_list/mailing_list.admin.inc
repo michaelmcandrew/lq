@@ -1,5 +1,4 @@
 <?php
-// $Id: mailing_list.admin.inc,v 1.3.4.4 2010/07/13 20:40:11 JacobSingh Exp $
 
 /**
  * @file
@@ -12,14 +11,21 @@
 function mailing_list_lists() {
   $header = array(
     array('data' => t('Name'), 'field' => 'name', 'sort' => 'asc'),
-    array('data' => t('Operations'), 'colspan' => '5')
+    array('data' => t('Operations'), 'colspan' => '5'),
   );
 
   $lists = mailing_list_get();
   $rows = array();
   $destination = drupal_get_destination();
   foreach ($lists as $mlid => $list) {
-    $row = array(l(check_plain($list->name), "admin/structure/mailing-list/$list->mlid"), l(t('list e-mails'), "admin/structure/mailing-list/$list->mlid"), l(t('import e-mails'), "admin/structure/mailing-list/$list->mlid/import", array('query' => $destination)), l(t('export list'), "admin/structure/mailing-list/$list->mlid/export", array('query' => $destination)), l(t('rename list'), "admin/structure/mailing-list/$list->mlid/edit", array('query' => $destination)), l(t('delete list'), "admin/structure/mailing-list/$list->mlid/delete", array('query' => $destination)));
+    $row = array(
+      l(check_plain($list->name), "admin/structure/mailing-list/$list->mlid"),
+      l(t('list e-mails'), "admin/structure/mailing-list/$list->mlid"),
+      l(t('import e-mails'), "admin/structure/mailing-list/$list->mlid/import", array('query' => $destination)),
+      l(t('export list'), "admin/structure/mailing-list/$list->mlid/export", array('query' => $destination)),
+      l(t('rename list'), "admin/structure/mailing-list/$list->mlid/edit", array('query' => $destination)),
+      l(t('delete list'), "admin/structure/mailing-list/$list->mlid/delete", array('query' => $destination)),
+    );
     $rows[] = $row;
   }
 
@@ -64,6 +70,7 @@ function mailing_list_emails_form($form, &$form_state, $list = NULL) {
   $header = array(
     'mail' => array('data' => t('E-mail'), 'field' => 'mle.mail', 'sort' => 'asc'),
     'name' => array('data' => t('Name'), 'field' => 'mle.name'),
+    'meeting' => array('data' => t('Meeting'), 'field' => 'mle.meeting'),
     'operations' => array('data' => t('Operations')),
   );
 
@@ -88,6 +95,7 @@ function mailing_list_emails_form($form, &$form_state, $list = NULL) {
     $rows[$data->eid] = array(
       'mail' => check_plain($data->mail),
       'name' => (!empty($data->name) ? check_plain($data->name) : theme('placeholder', t('none'))),
+      'meeting' => (!empty($data->meeting) ? check_plain($data->meeting) : theme('placeholder', t('none'))),
       'operations' => l(t('edit'), "admin/structure/mailing-list/$list->mlid/$data->eid", array('query' => $destination)), l(t('delete'), "admin/structure/mailing-list/$list->mlid/$data->eid/delete", array('query' => $destination))
     );
   }
@@ -356,6 +364,7 @@ function mailing_list_import_form_submit($form, &$form_state) {
         $mle->mlid = $mlid;
         $mle->mail = $data[0];
         $mle->name = $data[1];
+        $mle->meeting = $data[1];
         mailing_list_email_save($mle);
         $num_imported++;
       }
