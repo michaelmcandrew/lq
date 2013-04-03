@@ -5,11 +5,11 @@ function contact_event_organiser_node_view($node, $view_mode, $langcode) {
 	if(($node->type!='event' AND $node->type!='news') OR $view_mode!='full'){
 		return;
 	};
-	
+
 	if(!(isset($node->field_email['und'][0]['email']) && ($node->field_email['und'][0]['email']!=''))){
 		return;
 	};
-	
+
 	$node->content['contact_event_organiser_form']=array(
 		'#markup' => drupal_render(drupal_get_form('contact_event_organiser_form', $node)),
 		'#weight' => 10
@@ -21,6 +21,9 @@ function contact_event_organiser_node_view($node, $view_mode, $langcode) {
 }
 
 function contact_event_organiser_form($form, &$form_state, $node){
+  // add honeypot module protection to this form
+  honeypot_add_form_protection($form, $form_state, array('honeypot', 'time_restriction'));
+
 	$form['name'] = array(
 		'#title' => 'Name',
 		'#type' => 'textfield',
@@ -58,21 +61,21 @@ function contact_event_organiser_form_validate($form, $form_state){
 
 function contact_event_organiser_form_submit($form, $form_state){
 	global $account;
-	
+
 	$node=node_load($form_state['values']['nid']);
-	
+
 	$params['from']=$form_state['values']['email'];
-	$params['cc']=$form_state['values']['email'];	
+	$params['cc']=$form_state['values']['email'];
 	$params['to']=$node->field_email['und'][0]['email'];
 	$params['subject']="LQ website event enquiry for {$node->title}";
-	
+
 	$params['body']="
 Enquiry from: '{$form_state['values']['name']}'
 Email address: '{$form_state['values']['email']}'
 Regarding event: '{$node->title}'
 Extra info: '{$form_state['values']['text']}'
 ";
-	
+
 	drupal_mail('contact_event_organiser', 'notice', $params['to'], user_preferred_language($account), $params);
   drupal_set_message("Your email has been sent and copied to the address that you specified above ({$form_state['values']['name']}).");
 }
