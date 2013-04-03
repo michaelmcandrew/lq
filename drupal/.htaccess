@@ -12,6 +12,9 @@ Options -Indexes
 
 # Follow symbolic links in this directory.
 Options +FollowSymLinks
++# For security reasons, Option followsymlinks cannot be overridden.
++#Options +FollowSymLinks
++Options +SymLinksIfOwnerMatch
 
 # Make Drupal handle any 404 errors.
 ErrorDocument 404 /index.php
